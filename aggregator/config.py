@@ -20,6 +20,9 @@ NORWEGIAN_RSS_FEEDS = [
     "https://news.google.com/rss/search?q=teknologi+norge&hl=no&gl=NO&ceid=NO:no",                # Teknologi
     "https://news.google.com/rss/search?q=klima+norge&hl=no&gl=NO&ceid=NO:no",                    # Klima
     "https://news.google.com/rss/search?q=utenriks+norge&hl=no&gl=NO&ceid=NO:no",                 # Utenriks
+    "https://news.google.com/rss/search?q=norsk+kultur&hl=no&gl=NO&ceid=NO:no",                   # Kultur
+    "https://news.google.com/rss/search?q=forsvar+norge&hl=no&gl=NO&ceid=NO:no",                  # Forsvar
+    "https://news.google.com/rss/search?q=utdanning+norge&hl=no&gl=NO&ceid=NO:no",                # Utdanning
 
     # --- National broadcasters & tabloids ---
     "https://www.nrk.no/toppsaker.rss",
@@ -48,10 +51,37 @@ NORWEGIAN_RSS_FEEDS = [
 
     # --- Independent regionals ---
     "https://www.sunnhordland.no/rss.xml",  # Sunnhordland
+
+    # --- Tech & investigative (direct RSS) ---
+    "https://www.tu.no/rss",                # Teknisk Ukeblad (engineering/tech)
+    "https://www.filternyheter.no/feed",    # Filter Nyheter (investigative)
 ]
 
 # Amedia (~70 papers) have removed RSS — covered via Google News above
 RSS_UNAVAILABLE = ["dagbladet.no", "nettavisen.no", "klassekampen.no"]
+
+# Canonical publisher names for each domain we ingest directly
+DOMAIN_TO_NAME = {
+    "nrk.no":              "NRK",
+    "vg.no":               "VG",
+    "tv2.no":              "TV2",
+    "aftenposten.no":      "Aftenposten",
+    "vink.aftenposten.no": "Aftenposten",
+    "dagsavisen.no":       "Dagsavisen",
+    "e24.no":              "E24",
+    "digi.no":             "Digi.no",
+    "aftenbladet.no":      "Stavanger Aftenblad",
+    "fvn.no":              "Fædrelandsvennen",
+    "bt.no":               "Bergens Tidende",
+    "adressa.no":          "Adresseavisen",
+    "smp.no":              "Sunnmørsposten",
+    "rbnett.no":           "Romsdals Budstikke",
+    "itromso.no":          "iTromsø",
+    "ht.no":               "Harstad Tidende",
+    "sunnhordland.no":     "Sunnhordland",
+    "tu.no":               "Teknisk Ukeblad",
+    "filternyheter.no":    "Filter Nyheter",
+}
 
 # Domains known to require a full browser (JS-rendered or Cloudflare JS challenge)
 PLAYWRIGHT_DOMAINS = {

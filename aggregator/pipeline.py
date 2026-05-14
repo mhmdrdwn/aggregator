@@ -25,7 +25,7 @@ def run_pipeline() -> None:
                 "title": item["title"],
                 "text": item["title"],  # use title as text for NLP
                 "published": item.get("published", ""),
-                "source": item.get("source", ""),
+                "publisher": item.get("source", ""),  # distinct from trafilatura's "source" (which is article URL)
                 "link_url": item.get("link_url"),
             })
         else:

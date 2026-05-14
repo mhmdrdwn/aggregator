@@ -16,12 +16,22 @@ def run_pipeline() -> None:
     new_items = [item for item in discovered if not article_exists(item["url"])]
     logger.info(f"{len(new_items)} new URLs to process (skipping {len(discovered) - len(new_items)} known)")
 
-    # Step 1: fetch all articles
+    # Step 1: fetch all articles (Google News entries are title-only — skip extraction)
     raw_articles: list[dict] = []
     for item in new_items:
-        article_data = fetch_article(item["url"])
-        if article_data:
-            raw_articles.append(article_data)
+        if item.get("title_only"):
+            raw_articles.append({
+                "url": item["url"],
+                "title": item["title"],
+                "text": item["title"],  # use title as text for NLP
+                "published": item.get("published", ""),
+                "source": item.get("source", ""),
+                "link_url": item.get("link_url"),
+            })
+        else:
+            article_data = fetch_article(item["url"])
+            if article_data:
+                raw_articles.append(article_data)
 
     logger.info(f"Fetched {len(raw_articles)} articles — running NLP batch")
 

@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS articles (
     embedding    vector(768),
     cluster_id   INTEGER,
     entities     JSONB,
+    link_url     TEXT,
     created_at   TIMESTAMP DEFAULT NOW()
 );
 

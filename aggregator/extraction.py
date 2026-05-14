@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 
 import trafilatura
 
-from .config import PLAYWRIGHT_DOMAINS
+from .config import PLAYWRIGHT_DOMAINS, SKIP_URL_PATTERNS
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ def fetch_article_stealth(url: str) -> dict | None:
     try:
         from scrapling.fetchers import StealthyFetcher
         page = StealthyFetcher.fetch(url)
-        return _parse(page.html, url)
+        return _parse(page.html_content, url)
     except Exception as e:
         logger.warning(f"StealthyFetcher failed for {url}: {e}")
         return None
@@ -65,6 +65,11 @@ def fetch_article_playwright(url: str) -> dict | None:
 
 
 def fetch_article(url: str) -> dict | None:
+    # Skip video pages and other known non-article URLs
+    if any(pat in url for pat in SKIP_URL_PATTERNS):
+        logger.debug(f"Skipping non-article URL: {url}")
+        return None
+
     # Known JS-rendered sites — go straight to Playwright
     if _hostname(url) in PLAYWRIGHT_DOMAINS:
         logger.debug(f"Using Playwright directly for {url}")

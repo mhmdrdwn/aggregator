@@ -51,7 +51,7 @@ def list_articles(
 
             cur.execute(
                 f"""
-                SELECT id, url, title, body, author, published_at, source, entities
+                SELECT id, url, title, body, author, published_at, source, entities, link_url
                 FROM articles
                 {where_sql}
                 ORDER BY published_at DESC NULLS LAST, created_at DESC
@@ -65,11 +65,11 @@ def list_articles(
 
     articles = []
     for row in rows:
-        id_, url, title, body, author, published_at, source_, entities = row
+        id_, url, title, body, author, published_at, source_, entities, link_url = row
         articles.append(
             {
                 "id": id_,
-                "url": url,
+                "url": link_url or url,  # prefer clickable link_url over CBMi token
                 "title": title,
                 "snippet": (body or "")[:200].strip(),
                 "author": author,
@@ -86,6 +86,47 @@ def list_articles(
         "pages": max(1, -(-total // limit)),
         "articles": articles,
     }
+
+
+@app.get("/api/entities")
+def list_entities(
+    source: str = Query(""),
+    label: str = Query(""),
+    limit: int = Query(80, ge=1, le=200),
+):
+    where = ["entities IS NOT NULL", "jsonb_typeof(entities) = 'array'"]
+    params: list = []
+
+    if source:
+        where.append("source = %s")
+        params.append(source)
+    if label:
+        where.append("ent->>'label' = %s")
+        params.append(label)
+
+    where_sql = "WHERE " + " AND ".join(where)
+
+    conn = psycopg2.connect(DATABASE_URL)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT ent->>'text' AS text,
+                       ent->>'label' AS label,
+                       COUNT(*)      AS count
+                FROM   articles,
+                       jsonb_array_elements(entities) AS ent
+                {where_sql}
+                GROUP  BY ent->>'text', ent->>'label'
+                HAVING COUNT(*) > 1
+                ORDER  BY count DESC
+                LIMIT  %s
+                """,
+                params + [limit],
+            )
+            return [{"text": r[0], "label": r[1], "count": r[2]} for r in cur.fetchall()]
+    finally:
+        conn.close()
 
 
 @app.get("/api/sources")

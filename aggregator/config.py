@@ -60,6 +60,15 @@ PLAYWRIGHT_DOMAINS = {
     "itavisen.no",
 }
 
+# URL substrings to skip during extraction (video pages, RSS-only paths, etc.)
+SKIP_URL_PATTERNS = [
+    "tv.itromso.no",     # iTromsø video subdomain — no article text
+    "tv.adressa.no",     # Adresseavisen video subdomain
+    "/tv/n/",            # Polaris Media video path pattern
+    "/video/",           # Generic video path
+    "playlistId=",       # Schibsted video/audio story pages (aftenbladet, bt, fvn, etc.)
+]
+
 SPACY_MODEL = "nb_core_news_lg"
 SBERT_MODEL = "NbAiLab/nb-sbert-base"
 

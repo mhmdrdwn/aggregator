@@ -61,6 +61,89 @@
 
     .stats { font-size: 0.8rem; color: #6b7280; margin-left: auto; white-space: nowrap; }
 
+    /* ── Entities bubble section ─────────────────────────────────────────── */
+
+    .entities-section {
+      background: #fff;
+      border-bottom: 1px solid #e2e4e9;
+      padding: 1rem 2rem 0.75rem;
+    }
+
+    .entities-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+
+    .entities-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #374151;
+      white-space: nowrap;
+    }
+
+    .label-filters {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .label-btn {
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: #f3f4f6;
+      color: #374151;
+    }
+    .label-btn:hover { background: #e5e7eb; }
+    .label-btn.active { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+    .label-btn[data-label="PER"].active   { background: #1d4ed8; border-color: #1d4ed8; }
+    .label-btn[data-label="ORG"].active   { background: #065f46; border-color: #065f46; }
+    .label-btn[data-label="GPE"].active   { background: #92400e; border-color: #92400e; }
+    .label-btn[data-label="EVENT"].active { background: #5b21b6; border-color: #5b21b6; }
+
+    .toggle-entities {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.2rem 0.4rem;
+    }
+    .toggle-entities:hover { color: #374151; }
+
+    #bubble-chart {
+      width: 100%;
+      overflow: hidden;
+      transition: height 0.25s ease;
+    }
+    #bubble-chart.collapsed { height: 0 !important; }
+
+    #bubble-chart svg { display: block; }
+
+    .bubble-tooltip {
+      position: fixed;
+      background: #1a1a2e;
+      color: #fff;
+      font-size: 0.78rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 5px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s;
+      z-index: 100;
+      white-space: nowrap;
+    }
+
+    /* ── Article grid ────────────────────────────────────────────────────── */
+
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -131,10 +214,10 @@
       border-radius: 4px;
       font-weight: 500;
     }
-    .tag-PER  { background: #dbeafe; color: #1d4ed8; }
-    .tag-ORG  { background: #d1fae5; color: #065f46; }
+    .tag-PER   { background: #dbeafe; color: #1d4ed8; }
+    .tag-ORG   { background: #d1fae5; color: #065f46; }
     .tag-GPE,
-    .tag-LOC  { background: #fef3c7; color: #92400e; }
+    .tag-LOC   { background: #fef3c7; color: #92400e; }
     .tag-EVENT { background: #ede9fe; color: #5b21b6; }
 
     .pagination {
@@ -190,9 +273,28 @@
   <span class="stats" id="stats"></span>
 </div>
 
+<!-- Entities bubble chart -->
+<section class="entities-section">
+  <div class="entities-header">
+    <span class="entities-title">Trender</span>
+    <div class="label-filters" id="label-filters">
+      <button class="label-btn active" data-label="">Alle</button>
+      <button class="label-btn" data-label="PER">Personer</button>
+      <button class="label-btn" data-label="ORG">Organisasjoner</button>
+      <button class="label-btn" data-label="GPE">Steder</button>
+      <button class="label-btn" data-label="EVENT">Hendelser</button>
+    </div>
+    <button class="toggle-entities" id="toggle-entities">Skjul ▲</button>
+  </div>
+  <div id="bubble-chart"></div>
+</section>
+
+<div class="bubble-tooltip" id="bubble-tooltip"></div>
+
 <main class="grid" id="grid"></main>
 <div class="pagination" id="pagination"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <script>
   const grid       = document.getElementById('grid');
   const pagination = document.getElementById('pagination');
@@ -200,11 +302,24 @@
   const sourceEl   = document.getElementById('source-select');
   const statsEl    = document.getElementById('stats');
   const updatedEl  = document.getElementById('last-updated');
+  const tooltip    = document.getElementById('bubble-tooltip');
 
-  let currentPage = 1;
+  let currentPage  = 1;
+  let activeLabel  = '';
   let searchTimer;
+  let bubblesCollapsed = false;
 
-  // ── helpers ──────────────────────────────────────────────────────────────
+  // ── label colors (fill, stroke, text) ────────────────────────────────────
+  const COLORS = {
+    PER:   { fill: '#bfdbfe', stroke: '#3b82f6', text: '#1e3a8a' },
+    ORG:   { fill: '#a7f3d0', stroke: '#10b981', text: '#064e3b' },
+    GPE:   { fill: '#fde68a', stroke: '#f59e0b', text: '#78350f' },
+    LOC:   { fill: '#fde68a', stroke: '#f59e0b', text: '#78350f' },
+    EVENT: { fill: '#ddd6fe', stroke: '#8b5cf6', text: '#3b0764' },
+  };
+  function col(label) { return COLORS[label] || COLORS.PER; }
+
+  // ── helpers ───────────────────────────────────────────────────────────────
 
   function fmt(iso) {
     if (!iso) return '—';
@@ -221,6 +336,12 @@
       .join('');
   }
 
+  function fitText(text, r) {
+    if (r < 14) return '';
+    const maxChars = Math.floor((r * 2 * 0.82) / 7);
+    return text.length <= maxChars ? text : text.slice(0, maxChars - 1) + '…';
+  }
+
   function renderSkeletons() {
     grid.innerHTML = Array(6).fill(`
       <div class="card" style="pointer-events:none">
@@ -232,7 +353,112 @@
     pagination.innerHTML = '';
   }
 
-  // ── data loading ─────────────────────────────────────────────────────────
+  // ── bubble chart ──────────────────────────────────────────────────────────
+
+  async function loadEntities() {
+    const params = new URLSearchParams({ limit: 80, source: sourceEl.value });
+    if (activeLabel) params.set('label', activeLabel);
+    const data = await fetch(`/api/entities?${params}`).then(r => r.json());
+    drawBubbles(data);
+  }
+
+  function drawBubbles(entities) {
+    const container = document.getElementById('bubble-chart');
+    container.innerHTML = '';
+
+    if (!entities.length) {
+      container.style.height = '60px';
+      container.innerHTML = '<p style="text-align:center;padding:1rem 2rem;color:#9ca3af;font-size:.85rem">Ingen trender funnet.</p>';
+      return;
+    }
+
+    const W = container.clientWidth || 900;
+    const H = 260;
+    container.style.height = H + 'px';
+
+    const root = d3.hierarchy({ children: entities })
+      .sum(d => d.count)
+      .sort((a, b) => b.value - a.value);
+
+    d3.pack().size([W, H]).padding(4)(root);
+
+    const svg = d3.create('svg')
+      .attr('width', W)
+      .attr('height', H);
+
+    const node = svg.selectAll('g')
+      .data(root.leaves())
+      .join('g')
+      .attr('transform', d => `translate(${d.x},${d.y})`)
+      .style('cursor', 'pointer')
+      .on('click', (event, d) => {
+        searchEl.value = d.data.text;
+        currentPage = 1;
+        loadArticles();
+        tooltip.style.opacity = 0;
+      })
+      .on('mousemove', (event, d) => {
+        tooltip.textContent = `${d.data.text}  ·  ${d.data.count} artikler`;
+        tooltip.style.opacity = 1;
+        tooltip.style.left = (event.clientX + 12) + 'px';
+        tooltip.style.top  = (event.clientY - 28) + 'px';
+      })
+      .on('mouseleave', () => { tooltip.style.opacity = 0; });
+
+    node.append('circle')
+      .attr('r', d => d.r)
+      .attr('fill', d => col(d.data.label).fill)
+      .attr('stroke', d => col(d.data.label).stroke)
+      .attr('stroke-width', 1.5);
+
+    node.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dy', '0.35em')
+      .attr('fill', d => col(d.data.label).text)
+      .style('font-size', d => `${Math.min(13, Math.max(9, d.r * 0.42))}px`)
+      .style('font-weight', '600')
+      .style('pointer-events', 'none')
+      .style('user-select', 'none')
+      .text(d => fitText(d.data.text, d.r));
+
+    container.appendChild(svg.node());
+  }
+
+  // Redraw on resize
+  let resizeTimer;
+  new ResizeObserver(() => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(loadEntities, 150);
+  }).observe(document.getElementById('bubble-chart').parentElement);
+
+  // ── toggle collapse ───────────────────────────────────────────────────────
+
+  document.getElementById('toggle-entities').addEventListener('click', function () {
+    const chart = document.getElementById('bubble-chart');
+    bubblesCollapsed = !bubblesCollapsed;
+    if (bubblesCollapsed) {
+      chart.style.height = '0';
+      chart.style.overflow = 'hidden';
+      this.textContent = 'Vis ▼';
+    } else {
+      chart.style.overflow = '';
+      loadEntities();
+      this.textContent = 'Skjul ▲';
+    }
+  });
+
+  // ── label filter buttons ──────────────────────────────────────────────────
+
+  document.getElementById('label-filters').addEventListener('click', e => {
+    const btn = e.target.closest('.label-btn');
+    if (!btn) return;
+    document.querySelectorAll('.label-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeLabel = btn.dataset.label;
+    loadEntities();
+  });
+
+  // ── sources dropdown ──────────────────────────────────────────────────────
 
   async function loadSources() {
     const data = await fetch('/api/sources').then(r => r.json());
@@ -243,6 +469,8 @@
       sourceEl.appendChild(opt);
     });
   }
+
+  // ── articles ──────────────────────────────────────────────────────────────
 
   async function loadArticles() {
     renderSkeletons();
@@ -303,11 +531,16 @@
     searchTimer = setTimeout(() => { currentPage = 1; loadArticles(); }, 400);
   });
 
-  sourceEl.addEventListener('change', () => { currentPage = 1; loadArticles(); });
+  sourceEl.addEventListener('change', () => {
+    currentPage = 1;
+    loadArticles();
+    if (!bubblesCollapsed) loadEntities();
+  });
 
   // ── init ──────────────────────────────────────────────────────────────────
   loadSources();
   loadArticles();
+  loadEntities();
 </script>
 </body>
 </html>

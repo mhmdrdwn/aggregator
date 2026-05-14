@@ -1,6 +1,6 @@
 import logging
-import time
-import urllib.request
+import re
+from urllib.parse import quote_plus
 import feedparser
 
 from .config import NORWEGIAN_RSS_FEEDS
@@ -8,22 +8,23 @@ from .config import NORWEGIAN_RSS_FEEDS
 logger = logging.getLogger(__name__)
 
 
-def _resolve_google_url(url: str) -> str:
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            return resp.url
-    except Exception:
-        return url
-
-
 def _is_google_news(url: str) -> bool:
     return "news.google.com" in url
 
 
+def _clean_google_title(title: str, source_name: str) -> str:
+    """Remove ' - SourceName' suffix that Google News appends to titles."""
+    suffix = f" - {source_name}"
+    if title.endswith(suffix):
+        return title[: -len(suffix)]
+    # Also strip a trailing ' - <anything>' as fallback
+    cleaned = re.sub(r"\s+-\s+[^-]+$", "", title)
+    return cleaned if cleaned else title
+
+
 def get_urls_from_rss(feed_url: str) -> list[dict]:
     feed = feedparser.parse(feed_url)
-    source = feed.feed.get("title", feed_url)
+    feed_title = feed.feed.get("title", feed_url)
     is_google = _is_google_news(feed_url)
 
     results = []
@@ -32,20 +33,35 @@ def get_urls_from_rss(feed_url: str) -> list[dict]:
         if not link:
             continue
 
-        if is_google:
-            link = _resolve_google_url(link)
-            entry_source = getattr(getattr(entry, "source", None), "title", None)
-            source = entry_source or source
-            time.sleep(0.3)  # avoid hammering Google's redirect service
+        title = getattr(entry, "title", "")
+        source = feed_title
 
-        results.append(
-            {
-                "url": link,
-                "title": getattr(entry, "title", ""),
-                "published": entry.get("published", ""),
-                "source": source,
-            }
-        )
+        if is_google:
+            entry_source = getattr(getattr(entry, "source", None), "title", None)
+            if entry_source:
+                source = entry_source
+                title = _clean_google_title(title, entry_source)
+            # CBMi URL = stable dedup key; link_url = Google News search users can actually open
+            search_url = f"https://news.google.com/search?q={quote_plus(title)}&hl=no&gl=NO&ceid=NO:no"
+            results.append(
+                {
+                    "url": link,
+                    "title": title,
+                    "published": entry.get("published", ""),
+                    "source": source,
+                    "link_url": search_url,
+                    "title_only": True,
+                }
+            )
+        else:
+            results.append(
+                {
+                    "url": link,
+                    "title": title,
+                    "published": entry.get("published", ""),
+                    "source": source,
+                }
+            )
 
     return results
 

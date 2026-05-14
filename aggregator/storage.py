@@ -28,8 +28,8 @@ def save_article(article: dict) -> None:
             cur.execute(
                 """
                 INSERT INTO articles
-                    (url, title, body, author, published_at, source, embedding, entities)
-                VALUES (%s, %s, %s, %s, %s, %s, %s::vector, %s)
+                    (url, title, body, author, published_at, source, embedding, entities, link_url)
+                VALUES (%s, %s, %s, %s, %s, %s, %s::vector, %s, %s)
                 ON CONFLICT (url) DO NOTHING
                 """,
                 (
@@ -41,6 +41,7 @@ def save_article(article: dict) -> None:
                     article.get("source"),
                     json.dumps(article["embedding"]),
                     json.dumps(article.get("entities", [])),
+                    article.get("link_url"),
                 ),
             )
 

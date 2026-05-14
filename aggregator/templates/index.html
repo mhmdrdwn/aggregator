@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Norske Nyheter</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f5f7;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    }
+    header h1 { font-size: 1.3rem; font-weight: 700; flex: 1; }
+    header span { font-size: 0.8rem; opacity: 0.5; }
+
+    .toolbar {
+      padding: 1rem 2rem;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+      background: #fff;
+      border-bottom: 1px solid #e2e4e9;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d0d3da;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    .search-box:focus { outline: none; border-color: #4a6cf7; }
+
+    .source-filter {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d0d3da;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      background: #fff;
+      cursor: pointer;
+    }
+    .source-filter:focus { outline: none; border-color: #4a6cf7; }
+
+    .stats { font-size: 0.8rem; color: #6b7280; margin-left: auto; white-space: nowrap; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.25rem;
+      padding: 1.5rem 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.25rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      transition: box-shadow 0.15s, transform 0.15s;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
+    .card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,.12);
+      transform: translateY(-2px);
+    }
+
+    .card-source {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #4a6cf7;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.4;
+      color: #1a1a2e;
+    }
+
+    .card-snippet {
+      font-size: 0.85rem;
+      color: #4b5563;
+      line-height: 1.55;
+      flex: 1;
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      padding-top: 0.4rem;
+      border-top: 1px solid #f3f4f6;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      margin-top: 0.2rem;
+    }
+    .tag {
+      font-size: 0.68rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .tag-PER  { background: #dbeafe; color: #1d4ed8; }
+    .tag-ORG  { background: #d1fae5; color: #065f46; }
+    .tag-GPE,
+    .tag-LOC  { background: #fef3c7; color: #92400e; }
+    .tag-EVENT { background: #ede9fe; color: #5b21b6; }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1.5rem 2rem 2.5rem;
+    }
+    .page-btn {
+      padding: 0.45rem 0.85rem;
+      border: 1px solid #d0d3da;
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.1s;
+    }
+    .page-btn:hover:not(:disabled) { background: #f0f2ff; border-color: #4a6cf7; }
+    .page-btn:disabled { opacity: 0.4; cursor: default; }
+    .page-btn.active { background: #4a6cf7; color: #fff; border-color: #4a6cf7; }
+
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #9ca3af;
+      font-size: 1rem;
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #f0f2f5 25%, #e8eaed 50%, #f0f2f5 75%);
+      background-size: 400% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: 6px;
+      height: 1em;
+    }
+    @keyframes shimmer { to { background-position: -400% 0; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🇳🇴 Norske Nyheter</h1>
+  <span id="last-updated"></span>
+</header>
+
+<div class="toolbar">
+  <input class="search-box" id="search" type="search" placeholder="Søk i tittel eller innhold…" />
+  <select class="source-filter" id="source-select">
+    <option value="">Alle kilder</option>
+  </select>
+  <span class="stats" id="stats"></span>
+</div>
+
+<main class="grid" id="grid"></main>
+<div class="pagination" id="pagination"></div>
+
+<script>
+  const grid       = document.getElementById('grid');
+  const pagination = document.getElementById('pagination');
+  const searchEl   = document.getElementById('search');
+  const sourceEl   = document.getElementById('source-select');
+  const statsEl    = document.getElementById('stats');
+  const updatedEl  = document.getElementById('last-updated');
+
+  let currentPage = 1;
+  let searchTimer;
+
+  // ── helpers ──────────────────────────────────────────────────────────────
+
+  function fmt(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function tagHtml(entities) {
+    const seen = new Set();
+    return (entities || [])
+      .filter(e => { if (seen.has(e.text)) return false; seen.add(e.text); return true; })
+      .slice(0, 5)
+      .map(e => `<span class="tag tag-${e.label}">${e.text}</span>`)
+      .join('');
+  }
+
+  function renderSkeletons() {
+    grid.innerHTML = Array(6).fill(`
+      <div class="card" style="pointer-events:none">
+        <div class="skeleton" style="width:30%;height:.7em"></div>
+        <div class="skeleton" style="width:90%;height:1.1em;margin-top:.3rem"></div>
+        <div class="skeleton" style="width:75%;height:1.1em"></div>
+        <div class="skeleton" style="width:100%;height:3.5em;margin-top:.4rem"></div>
+      </div>`).join('');
+    pagination.innerHTML = '';
+  }
+
+  // ── data loading ─────────────────────────────────────────────────────────
+
+  async function loadSources() {
+    const data = await fetch('/api/sources').then(r => r.json());
+    data.forEach(({ source, count }) => {
+      const opt = document.createElement('option');
+      opt.value = source;
+      opt.textContent = `${source} (${count})`;
+      sourceEl.appendChild(opt);
+    });
+  }
+
+  async function loadArticles() {
+    renderSkeletons();
+
+    const params = new URLSearchParams({
+      page: currentPage,
+      limit: 20,
+      source: sourceEl.value,
+      q: searchEl.value.trim(),
+    });
+
+    const data = await fetch(`/api/articles?${params}`).then(r => r.json());
+
+    statsEl.textContent = `${data.total.toLocaleString('nb-NO')} artikler`;
+    updatedEl.textContent = `Side ${data.page} av ${data.pages}`;
+
+    if (data.articles.length === 0) {
+      grid.innerHTML = '<p class="empty">Ingen artikler funnet.</p>';
+      pagination.innerHTML = '';
+      return;
+    }
+
+    grid.innerHTML = data.articles.map(a => `
+      <a class="card" href="${a.url}" target="_blank" rel="noopener">
+        <div class="card-source">${a.source || 'Ukjent kilde'}</div>
+        <div class="card-title">${a.title || 'Uten tittel'}</div>
+        ${a.snippet ? `<div class="card-snippet">${a.snippet}…</div>` : ''}
+        ${tagHtml(a.entities) ? `<div class="tags">${tagHtml(a.entities)}</div>` : ''}
+        <div class="card-meta">
+          <span>${a.author || ''}</span>
+          <span>${fmt(a.published_at)}</span>
+        </div>
+      </a>`).join('');
+
+    renderPagination(data.page, data.pages);
+  }
+
+  function renderPagination(page, pages) {
+    if (pages <= 1) { pagination.innerHTML = ''; return; }
+
+    const range = [];
+    for (let i = Math.max(1, page - 2); i <= Math.min(pages, page + 2); i++) range.push(i);
+
+    pagination.innerHTML = `
+      <button class="page-btn" ${page === 1 ? 'disabled' : ''} onclick="go(${page - 1})">←</button>
+      ${range[0] > 1 ? `<button class="page-btn" onclick="go(1)">1</button>${range[0] > 2 ? '<span>…</span>' : ''}` : ''}
+      ${range.map(p => `<button class="page-btn ${p === page ? 'active' : ''}" onclick="go(${p})">${p}</button>`).join('')}
+      ${range.at(-1) < pages ? `${range.at(-1) < pages - 1 ? '<span>…</span>' : ''}<button class="page-btn" onclick="go(${pages})">${pages}</button>` : ''}
+      <button class="page-btn" ${page === pages ? 'disabled' : ''} onclick="go(${page + 1})">→</button>`;
+  }
+
+  // ── events ────────────────────────────────────────────────────────────────
+
+  window.go = function(p) { currentPage = p; loadArticles(); window.scrollTo(0, 0); };
+
+  searchEl.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { currentPage = 1; loadArticles(); }, 400);
+  });
+
+  sourceEl.addEventListener('change', () => { currentPage = 1; loadArticles(); });
+
+  // ── init ──────────────────────────────────────────────────────────────────
+  loadSources();
+  loadArticles();
+</script>
+</body>
+</html>

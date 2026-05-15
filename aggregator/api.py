@@ -157,6 +157,143 @@ def list_topics():
         conn.close()
 
 
+@app.get("/api/sentiment-timeline")
+def sentiment_timeline(
+    source: str = Query(""),
+    q: str = Query(""),
+    date_from: str = Query(""),
+    date_to: str = Query(""),
+    topic: str = Query(""),
+):
+    where_clauses = ["sentiment IS NOT NULL", "published_at IS NOT NULL"]
+    params: list = []
+
+    if source:
+        where_clauses.append("source = %s")
+        params.append(source)
+    if q:
+        where_clauses.append("(title ILIKE %s OR body ILIKE %s)")
+        params.extend([f"%{q}%", f"%{q}%"])
+    if date_from:
+        where_clauses.append("published_at >= %s")
+        params.append(date_from)
+    else:
+        where_clauses.append("published_at >= NOW() - INTERVAL '7 days'")
+    if date_to:
+        where_clauses.append("published_at < (%s::date + interval '1 day')")
+        params.append(date_to)
+    if topic:
+        where_clauses.append("topic = %s")
+        params.append(topic)
+
+    where_sql = "WHERE " + " AND ".join(where_clauses)
+
+    conn = psycopg2.connect(DATABASE_URL)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT DATE(published_at) AS day, sentiment, COUNT(*) AS cnt
+                FROM articles
+                {where_sql}
+                GROUP BY day, sentiment
+                ORDER BY day
+                """,
+                params,
+            )
+            rows = cur.fetchall()
+    finally:
+        conn.close()
+
+    by_date: dict = {}
+    for day, sentiment, cnt in rows:
+        key = day.isoformat()
+        if key not in by_date:
+            by_date[key] = {"date": key, "positive": 0, "negative": 0, "neutral": 0}
+        if sentiment in by_date[key]:
+            by_date[key][sentiment] = cnt
+
+    return sorted(by_date.values(), key=lambda x: x["date"])
+
+
+@app.get("/api/entity-timeline")
+def entity_timeline(
+    source: str = Query(""),
+    topic: str = Query(""),
+    label: str = Query(""),
+):
+    labels = [l.strip() for l in label.split(",") if l.strip()] or ["PER", "ORG", "GPE"]
+
+    art_where = [
+        "a.published_at >= NOW() - INTERVAL '7 days'",
+        "a.entities IS NOT NULL",
+        "jsonb_typeof(a.entities) = 'array'",
+    ]
+    art_params: list = []
+
+    if source:
+        art_where.append("a.source = %s")
+        art_params.append(source)
+    if topic:
+        art_where.append("a.topic = %s")
+        art_params.append(topic)
+
+    label_sql = " OR ".join(["ent->>'label' = %s"] * len(labels))
+    where_sql  = "WHERE " + " AND ".join(art_where) + f" AND ({label_sql})"
+
+    conn = psycopg2.connect(DATABASE_URL)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT ent->>'text' AS entity, COUNT(*) AS total
+                FROM articles a, jsonb_array_elements(a.entities) AS ent
+                {where_sql}
+                GROUP BY entity
+                HAVING COUNT(*) > 1
+                ORDER BY total DESC
+                LIMIT 8
+                """,
+                art_params + labels,
+            )
+            top_entities = [row[0] for row in cur.fetchall()]
+            if not top_entities:
+                return {"dates": [], "series": []}
+
+            ent_ph = ",".join(["%s"] * len(top_entities))
+            cur.execute(
+                f"""
+                SELECT DATE(a.published_at) AS day,
+                       ent->>'text'          AS entity,
+                       COUNT(*)              AS cnt
+                FROM articles a, jsonb_array_elements(a.entities) AS ent
+                {where_sql}
+                  AND ent->>'text' IN ({ent_ph})
+                GROUP BY day, entity
+                ORDER BY day
+                """,
+                art_params + labels + top_entities,
+            )
+            rows = cur.fetchall()
+    finally:
+        conn.close()
+
+    all_dates: list = sorted({row[0].isoformat() for row in rows})
+    by_entity: dict = {e: {} for e in top_entities}
+    for day, entity, cnt in rows:
+        if entity in by_entity:
+            by_entity[entity][day.isoformat()] = cnt
+
+    return {
+        "dates": all_dates,
+        "series": [
+            {"entity": e, "values": [by_entity[e].get(d, 0) for d in all_dates]}
+            for e in top_entities
+            if any(by_entity[e].values())
+        ],
+    }
+
+
 @app.get("/api/sources")
 def list_sources():
     conn = psycopg2.connect(DATABASE_URL)

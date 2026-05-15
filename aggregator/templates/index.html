@@ -185,6 +185,49 @@
       white-space: nowrap;
     }
 
+    /* ── Analytics row ───────────────────────────────────────────────────── */
+
+    .analytics-section {
+      background: var(--white);
+      border-bottom: 1px solid var(--light);
+    }
+    .analytics-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0.7rem 2rem 0.55rem;
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 2rem;
+      align-items: start;
+    }
+    .analytics-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+    .sent-legend {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 400;
+    }
+    .legend-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      margin-right: 0.2rem;
+    }
+    .legend-dot.positive { background: #4ade80; }
+    .legend-dot.neutral  { background: #d1d5db; }
+    .legend-dot.negative { background: #f87171; }
+    #sentiment-chart, #sov-chart { width: 100%; }
+
     /* ── Article grid ────────────────────────────────────────────────────── */
 
     .grid {
@@ -374,6 +417,26 @@
 </section>
 
 <div class="bubble-tooltip" id="bubble-tooltip"></div>
+
+<div class="analytics-section">
+  <div class="analytics-inner">
+    <div class="analytics-panel">
+      <div class="analytics-label">
+        Sentiment · siste uke
+        <span class="sent-legend">
+          <span class="legend-dot positive"></span>Pos
+          <span class="legend-dot neutral"></span>Nøy
+          <span class="legend-dot negative"></span>Neg
+        </span>
+      </div>
+      <div id="sentiment-chart"></div>
+    </div>
+    <div class="analytics-panel">
+      <div class="analytics-label">Entitetsutvikling · siste uke</div>
+      <div id="sov-chart"></div>
+    </div>
+  </div>
+</div>
 
 <main class="grid" id="grid"></main>
 <div class="pagination" id="pagination"></div>
@@ -655,6 +718,191 @@
     loadEntities();
   });
 
+  // ── sentiment timeline ───────────────────────────────────────────────────
+
+  async function loadSentimentChart() {
+    const params = new URLSearchParams({
+      source: activeSource,
+      topic:  activeTopic,
+      q:      searchEl.value.trim(),
+      date_from: dateFromEl.value,
+      date_to:   dateToEl.value,
+    });
+    const data = await fetch(`/api/sentiment-timeline?${params}`).then(r => r.json());
+    drawSentimentChart(data);
+  }
+
+  function drawSentimentChart(data) {
+    const container = document.getElementById('sentiment-chart');
+    container.innerHTML = '';
+    if (!data.length) return;
+
+    const m = { top: 6, right: 8, bottom: 22, left: 28 };
+    const W = container.clientWidth || 400;
+    const H = 90;
+    const w = W - m.left - m.right;
+    const h = H - m.top  - m.bottom;
+
+    const COLORS = { positive: '#4ade80', neutral: '#d1d5db', negative: '#f87171' };
+    const keys   = ['positive', 'neutral', 'negative'];
+
+    const stacked = d3.stack().keys(keys)(data);
+    const maxVal  = d3.max(stacked[stacked.length - 1], d => d[1]) || 1;
+
+    const x = d3.scaleBand()
+      .domain(data.map(d => d.date))
+      .range([0, w]).padding(0.12);
+
+    const y = d3.scaleLinear().domain([0, maxVal]).range([h, 0]).nice();
+
+    const svg = d3.create('svg').attr('width', W).attr('height', H);
+    const g   = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
+
+    // Grid lines
+    g.append('g')
+      .call(d3.axisLeft(y).ticks(3).tickSize(-w).tickFormat(''))
+      .call(a => a.select('.domain').remove())
+      .call(a => a.selectAll('line').attr('stroke', '#f0f0f0'));
+
+    // Stacked bars
+    g.selectAll('g.layer')
+      .data(stacked)
+      .join('g')
+        .attr('fill', d => COLORS[d.key])
+        .selectAll('rect')
+        .data(d => d)
+        .join('rect')
+          .attr('x',      d => x(d.data.date))
+          .attr('y',      d => y(d[1]))
+          .attr('height', d => Math.max(0, y(d[0]) - y(d[1])))
+          .attr('width',  x.bandwidth())
+          .on('mousemove', (event, d) => {
+            const total = d.data.positive + d.data.neutral + d.data.negative;
+            tooltip.innerHTML =
+              `<b>${d.data.date}</b>  ${total} art.<br>` +
+              `▲ ${d.data.positive} pos · ${d.data.neutral} nøy · ${d.data.negative} neg`;
+            tooltip.style.opacity = 1;
+            tooltip.style.left = (event.clientX + 12) + 'px';
+            tooltip.style.top  = (event.clientY - 36) + 'px';
+          })
+          .on('mouseleave', () => { tooltip.style.opacity = 0; });
+
+    // X-axis dates
+    const step = Math.ceil(data.length / 7);
+    g.append('g')
+      .attr('transform', `translate(0,${h})`)
+      .call(
+        d3.axisBottom(x)
+          .tickValues(data.filter((_, i) => i % step === 0).map(d => d.date))
+          .tickFormat(d => new Date(d).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' }))
+          .tickSize(0)
+      )
+      .call(a => a.select('.domain').remove())
+      .selectAll('text')
+        .attr('dy', '1em')
+        .style('font-size', '10px')
+        .style('fill', '#737373');
+
+    // Y-axis
+    g.append('g')
+      .call(d3.axisLeft(y).ticks(3))
+      .call(a => a.select('.domain').remove())
+      .call(a => a.selectAll('line').remove())
+      .selectAll('text')
+        .style('font-size', '10px')
+        .style('fill', '#737373');
+
+    container.appendChild(svg.node());
+  }
+
+  // ── share of voice (entity timeline) ─────────────────────────────────────
+
+  const LINE_COLORS = ['#e63946','#457b9d','#2a9d8f','#e9c46a','#f4a261','#6d6875','#264653','#b5838d'];
+
+  async function loadEntityTimeline() {
+    const params = new URLSearchParams({ source: activeSource, topic: activeTopic });
+    const data = await fetch(`/api/entity-timeline?${params}`).then(r => r.json());
+    drawEntityTimeline(data);
+  }
+
+  function drawEntityTimeline(data) {
+    const container = document.getElementById('sov-chart');
+    container.innerHTML = '';
+    if (!data.dates || !data.dates.length || !data.series || !data.series.length) {
+      container.innerHTML = '<p style="color:#9ca3af;font-size:.75rem;padding:.4rem 0">Ingen data</p>';
+      return;
+    }
+
+    const legendW = 118;
+    const m = { top: 6, right: 6, bottom: 22, left: 28 };
+    const W = container.clientWidth || 600;
+    const H = 90;
+    const w = W - m.left - m.right - legendW;
+    const h = H - m.top - m.bottom;
+
+    const x = d3.scalePoint().domain(data.dates).range([0, w]).padding(0.15);
+    const maxVal = d3.max(data.series.flatMap(s => s.values)) || 1;
+    const y = d3.scaleLinear().domain([0, maxVal]).range([h, 0]).nice();
+
+    const line = d3.line()
+      .x((v, i) => x(data.dates[i]))
+      .y(v => y(v))
+      .curve(d3.curveMonotoneX);
+
+    const svg = d3.create('svg').attr('width', W).attr('height', H);
+    const g   = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
+
+    g.append('g')
+      .call(d3.axisLeft(y).ticks(3).tickSize(-w).tickFormat(''))
+      .call(a => a.select('.domain').remove())
+      .call(a => a.selectAll('line').attr('stroke', '#f0f0f0'));
+
+    data.series.forEach((s, i) => {
+      const color = LINE_COLORS[i % LINE_COLORS.length];
+      g.append('path').datum(s.values)
+        .attr('fill', 'none').attr('stroke', color).attr('stroke-width', 2).attr('d', line);
+      g.selectAll(null).data(s.values).join('circle')
+        .attr('cx', (v, j) => x(data.dates[j])).attr('cy', v => y(v))
+        .attr('r', 3).attr('fill', color)
+        .on('mousemove', (event, v) => {
+          const j = s.values.indexOf(v);
+          tooltip.textContent = `${s.entity}  ·  ${data.dates[j]}  ·  ${v} art.`;
+          tooltip.style.opacity = 1;
+          tooltip.style.left = (event.clientX + 12) + 'px';
+          tooltip.style.top  = (event.clientY - 28) + 'px';
+        })
+        .on('mouseleave', () => { tooltip.style.opacity = 0; });
+    });
+
+    const step = Math.max(1, Math.ceil(data.dates.length / 6));
+    g.append('g').attr('transform', `translate(0,${h})`)
+      .call(d3.axisBottom(x)
+        .tickValues(data.dates.filter((_, i) => i % step === 0))
+        .tickFormat(d => new Date(d + 'T12:00').toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' }))
+        .tickSize(0))
+      .call(a => a.select('.domain').remove())
+      .selectAll('text').attr('dy', '1em').style('font-size', '10px').style('fill', '#737373');
+
+    g.append('g').call(d3.axisLeft(y).ticks(3))
+      .call(a => a.select('.domain').remove())
+      .call(a => a.selectAll('line').remove())
+      .selectAll('text').style('font-size', '10px').style('fill', '#737373');
+
+    const legend = svg.append('g').attr('transform', `translate(${m.left + w + 10},${m.top})`);
+    data.series.forEach((s, i) => {
+      const color = LINE_COLORS[i % LINE_COLORS.length];
+      const row = legend.append('g').attr('transform', `translate(0,${i * 14})`);
+      row.append('line').attr('x1', 0).attr('x2', 12).attr('y1', 5).attr('y2', 5)
+        .attr('stroke', color).attr('stroke-width', 2);
+      row.append('circle').attr('cx', 6).attr('cy', 5).attr('r', 2.5).attr('fill', color);
+      const lbl = s.entity.length > 15 ? s.entity.slice(0, 14) + '…' : s.entity;
+      row.append('text').attr('x', 16).attr('y', 9).text(lbl)
+        .style('font-size', '9.5px').style('fill', '#374151');
+    });
+
+    container.appendChild(svg.node());
+  }
+
   // ── articles ──────────────────────────────────────────────────────────────
 
   async function loadArticles() {
@@ -678,6 +926,7 @@
     if (data.articles.length === 0) {
       grid.innerHTML = '<p class="empty">Ingen artikler funnet.</p>';
       pagination.innerHTML = '';
+      loadSentimentChart(); loadEntityTimeline();
       return;
     }
 
@@ -699,6 +948,8 @@
       </a>`).join('');
 
     renderPagination(data.page, data.pages);
+    loadSentimentChart();
+    loadEntityTimeline();
   }
 
   function renderPagination(page, pages) {
@@ -727,8 +978,15 @@
   dateFromEl.addEventListener('change', () => { currentPage = 1; loadArticles(); });
   dateToEl.addEventListener('change',   () => { currentPage = 1; loadArticles(); });
 
+  // Redraw analytics charts on resize
+  let sentResizeTimer;
+  new ResizeObserver(() => {
+    clearTimeout(sentResizeTimer);
+    sentResizeTimer = setTimeout(() => { loadSentimentChart(); loadEntityTimeline(); }, 150);
+  }).observe(document.querySelector('.analytics-inner'));
+
   // ── init ──────────────────────────────────────────────────────────────────
-  loadArticles();
+  loadArticles();   // also triggers loadSentimentChart at end
   loadEntities();
 </script>
 </body>

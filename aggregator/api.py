@@ -23,6 +23,8 @@ def list_articles(
     limit: int = Query(20, ge=1, le=100),
     source: str = Query(""),
     q: str = Query(""),
+    date_from: str = Query(""),
+    date_to: str = Query(""),
 ):
     offset = (page - 1) * limit
 
@@ -35,6 +37,12 @@ def list_articles(
     if q:
         where_clauses.append("(title ILIKE %s OR body ILIKE %s)")
         params.extend([f"%{q}%", f"%{q}%"])
+    if date_from:
+        where_clauses.append("published_at >= %s")
+        params.append(date_from)
+    if date_to:
+        where_clauses.append("published_at < (%s::date + interval '1 day')")
+        params.append(date_to)
 
     where_sql = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
 
@@ -69,7 +77,7 @@ def list_articles(
         articles.append(
             {
                 "id": id_,
-                "url": link_url or url,  # prefer clickable link_url over CBMi token
+                "url": url,
                 "title": title,
                 "snippet": (body or "")[:200].strip(),
                 "author": author,

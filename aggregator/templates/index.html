@@ -59,6 +59,22 @@
     }
     .source-filter:focus { outline: none; border-color: #4a6cf7; }
 
+    .date-input {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d0d3da;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      background: #fff;
+      color: #1a1a2e;
+      cursor: pointer;
+    }
+    .date-input:focus { outline: none; border-color: #4a6cf7; }
+    .date-label {
+      font-size: 0.78rem;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+
     .stats { font-size: 0.8rem; color: #6b7280; margin-left: auto; white-space: nowrap; }
 
     /* ── Entities bubble section ─────────────────────────────────────────── */
@@ -270,6 +286,10 @@
   <select class="source-filter" id="source-select">
     <option value="">Alle kilder</option>
   </select>
+  <span class="date-label">Fra</span>
+  <input class="date-input" id="date-from" type="date" />
+  <span class="date-label">Til</span>
+  <input class="date-input" id="date-to" type="date" />
   <span class="stats" id="stats"></span>
 </div>
 
@@ -300,6 +320,8 @@
   const pagination = document.getElementById('pagination');
   const searchEl   = document.getElementById('search');
   const sourceEl   = document.getElementById('source-select');
+  const dateFromEl = document.getElementById('date-from');
+  const dateToEl   = document.getElementById('date-to');
   const statsEl    = document.getElementById('stats');
   const updatedEl  = document.getElementById('last-updated');
   const tooltip    = document.getElementById('bubble-tooltip');
@@ -480,6 +502,8 @@
       limit: 20,
       source: sourceEl.value,
       q: searchEl.value.trim(),
+      date_from: dateFromEl.value,
+      date_to: dateToEl.value,
     });
 
     const data = await fetch(`/api/articles?${params}`).then(r => r.json());
@@ -536,6 +560,9 @@
     loadArticles();
     if (!bubblesCollapsed) loadEntities();
   });
+
+  dateFromEl.addEventListener('change', () => { currentPage = 1; loadArticles(); });
+  dateToEl.addEventListener('change',   () => { currentPage = 1; loadArticles(); });
 
   // ── init ──────────────────────────────────────────────────────────────────
   loadSources();

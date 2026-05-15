@@ -37,17 +37,15 @@ def _sbert_model():
 
 
 def _canonical_source(article: dict) -> str:
-    """Return a clean publisher name for an article dict.
-
-    Priority:
-    1. DOMAIN_TO_NAME map keyed by the article's URL hostname (most reliable)
-    2. 'publisher' key — set by pipeline for Google News title-only entries
-    3. 'sitename' — trafilatura-extracted site name
-    4. hostname fallback
-    """
     host = _hostname(article.get("url", ""))
     if host in DOMAIN_TO_NAME:
         return DOMAIN_TO_NAME[host]
+    # Subdomain fallback: trdby.adressa.no → adressa.no
+    parts = host.split(".")
+    if len(parts) > 2:
+        parent = ".".join(parts[-2:])
+        if parent in DOMAIN_TO_NAME:
+            return DOMAIN_TO_NAME[parent]
     return article.get("publisher") or article.get("sitename") or host or "Ukjent"
 
 

@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from .config import (
     SPACY_MODEL,
     SBERT_MODEL,
+    SENTIMENT_MODEL,
     NER_LABELS,
     NLP_TEXT_LIMIT,
     EMBEDDING_TEXT_LIMIT,
@@ -36,6 +37,12 @@ def _sbert_model():
     return SentenceTransformer(SBERT_MODEL)
 
 
+@lru_cache(maxsize=1)
+def _sentiment_pipeline():
+    from transformers import pipeline
+    return pipeline("sentiment-analysis", model=SENTIMENT_MODEL, top_k=1, truncation=True, max_length=512)
+
+
 def _canonical_source(article: dict) -> str:
     host = _hostname(article.get("url", ""))
     if host in DOMAIN_TO_NAME:
@@ -47,6 +54,75 @@ def _canonical_source(article: dict) -> str:
         if parent in DOMAIN_TO_NAME:
             return DOMAIN_TO_NAME[parent]
     return article.get("publisher") or article.get("sitename") or host or "Ukjent"
+
+
+# Keyword sets per topic — scored against lowercased title + body snippet
+_TOPIC_KEYWORDS: dict[str, list[str]] = {
+    "sport":         ["fotball","håndball","ski","langrenn","idrett","kamp","turnering",
+                      "liga","vm","em","ol","trener","spiller","seier","tap","mål",
+                      "champions league","premier league","nhl","nba","sykkel","tennis",
+                      "golf","friidrett","svømming","haaland","løping","runde","poeng"],
+    "kriminalitet":  ["politi","siktet","tiltalt","drap","ran","vold","dom","fengslet",
+                      "pågripet","etterforsker","overfall","narkotika","bedrageri",
+                      "svindel","kniv","skudd","arrestert","ofre","retten","straff"],
+    "politikk":      ["stortinget","regjering","statsminister","minister","parti","valg",
+                      "ap","høyre","frp","sv","senterpartiet","vedtak","debatt",
+                      "politikk","støre","storting","budsjettet","flertall","opposisjon"],
+    "økonomi":       ["økonomi","næringsliv","aksjer","børs","renter","inflasjon",
+                      "bedrift","selskap","kvartal","omsetning","overskudd","underskudd",
+                      "norges bank","oljeprisen","kronekurs","arbeidsledighet","vekst"],
+    "helse":         ["helse","sykdom","sykehus","pasient","lege","behandling","medisin",
+                      "kreft","hjerte","psykisk","folkehelse","vaksine","studie","forskning",
+                      "helseminister","legemiddel","operasjon","diagnose","symptomer"],
+    "teknologi":     ["teknologi","data","ai","kunstig intelligens","digitalisering",
+                      "programvare","app","robot","cyber","kryptovaluta","bitcoin",
+                      "elektrisitet","batteri","halvleder","it","startup","innovasjon"],
+    "klima":         ["klima","miljø","utslipp","co2","natur","fornybar","vindkraft",
+                      "solenergi","havnivå","flom","tørke","ekstremvær","artsmangfold",
+                      "naturkatastrofe","klimaendring","grønn","bærekraft"],
+    "kultur":        ["kultur","musikk","film","kunst","litteratur","teater","konsert",
+                      "festival","utstilling","prisvinner","bok","serie","strømming",
+                      "kino","skuespiller","forfatter","regissør","nobelprisen"],
+    "utenriks":      ["ukraina","russland","usa","kina","eu","nato","krig","konflikt",
+                      "trump","putin","israel","gaza","palestina","midtøsten","fn",
+                      "sanksjoner","diplomat","bilateral","internasjonal","verdensbank"],
+    "forsvar":       ["forsvaret","militær","nato","soldat","fregatt","kampfly","hær",
+                      "marine","heimevernet","beredskap","rustning","ubåt","missil",
+                      "forsvarsbudsjet","sikkerhetspolitikk","etterretning"],
+    "utdanning":     ["skole","elev","lærer","student","universitet","høyskole",
+                      "utdanning","forskning","karakter","eksamen","barnehage",
+                      "rektor","studiepoeng","frafall","lærested"],
+    "samfunn":       ["samfunn","velferd","innvandring","integrering","bolig",
+                      "fattigdom","barnevern","nav","trygd","pensjon","likestilling",
+                      "diskriminering","rasisme","frivillighet","kirke","religion"],
+}
+
+# SBERT anchor embeddings for each topic (computed once, used as fallback)
+@lru_cache(maxsize=1)
+def _topic_anchors() -> tuple[list[str], np.ndarray]:
+    descriptions = {k: " ".join(v[:12]) for k, v in _TOPIC_KEYWORDS.items()}
+    names = list(descriptions.keys())
+    embs = _sbert_model().encode(list(descriptions.values()))
+    return names, embs
+
+
+def classify_topic(title: str, text: str, embedding: list[float]) -> str:
+    """Keyword scoring with SBERT cosine-similarity fallback."""
+    haystack = f"{title} {text[:600]}".lower()
+
+    scores: dict[str, int] = {}
+    for topic, keywords in _TOPIC_KEYWORDS.items():
+        scores[topic] = sum(1 for kw in keywords if kw in haystack)
+
+    best_score = max(scores.values())
+    if best_score >= 2:
+        return max(scores, key=lambda t: scores[t])
+
+    # Fallback: cosine similarity against topic anchors
+    names, anchors = _topic_anchors()
+    from sklearn.metrics.pairwise import cosine_similarity as cos_sim
+    sims = cos_sim([embedding], anchors)[0]
+    return names[int(sims.argmax())]
 
 
 def _ner(text: str) -> list[dict]:
@@ -74,8 +150,17 @@ def process_articles(raw_articles: list[dict]) -> list[dict]:
     ]
     embeddings = _sbert_model().encode(texts, batch_size=32, show_progress_bar=True)
 
+    # Sentiment on title + first 300 chars of body (fast, sufficient signal)
+    sentiment_inputs = [
+        f"{a.get('title', '')}. {a['text'][:300]}"
+        for a in valid
+    ]
+    sentiment_results = _sentiment_pipeline()(sentiment_inputs, batch_size=32)
+
     results = []
-    for a, entities, embedding in zip(valid, entities_list, embeddings):
+    for a, entities, embedding, sent in zip(valid, entities_list, embeddings, sentiment_results):
+        top = sent[0]
+        emb_list = embedding.tolist()
         results.append({
             "title": a.get("title", ""),
             "text": a["text"],
@@ -84,8 +169,11 @@ def process_articles(raw_articles: list[dict]) -> list[dict]:
             "date": a.get("date") or a.get("published", ""),
             "source": _canonical_source(a),
             "entities": entities,
-            "embedding": embedding.tolist(),
+            "embedding": emb_list,
             "link_url": a.get("link_url"),
+            "sentiment": top["label"],
+            "sentiment_score": round(top["score"], 3),
+            "topic": classify_topic(a.get("title", ""), a["text"], emb_list),
         })
 
     return results

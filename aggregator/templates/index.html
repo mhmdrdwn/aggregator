@@ -4,153 +4,180 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Norske Nyheter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --red:    #c8102e;
+      --ink:    #111111;
+      --muted:  #737373;
+      --light:  #e5e5e5;
+      --bg:     #f5f4f0;
+      --white:  #ffffff;
+      --sans:   'Inter', -apple-system, sans-serif;
+      --serif:  'Playfair Display', Georgia, serif;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f4f5f7;
-      color: #1a1a2e;
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--ink);
       min-height: 100vh;
     }
 
+    /* ── Header ─────────────────────────────────────────────────────────── */
+
     header {
-      background: #1a1a2e;
-      color: #fff;
-      padding: 1.25rem 2rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
+      background: var(--white);
+      border-bottom: 3px solid var(--ink);
       position: sticky;
       top: 0;
       z-index: 10;
-      box-shadow: 0 2px 8px rgba(0,0,0,.3);
     }
-    header h1 { font-size: 1.3rem; font-weight: 700; flex: 1; }
-    header span { font-size: 0.8rem; opacity: 0.5; }
-
-    .toolbar {
+    .header-brand {
+      max-width: 1400px;
+      margin: 0 auto;
       padding: 1rem 2rem;
       display: flex;
+      align-items: center;
       gap: 0.75rem;
+    }
+    .header-flag { font-size: 1.4rem; line-height: 1; }
+    header h1 {
+      font-family: var(--serif);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+    .header-rule {
+      width: 1px;
+      background: var(--light);
+      margin: 0.6rem 1.5rem;
+    }
+    #last-updated {
+      font-size: 0.75rem;
+      color: var(--muted);
+      align-self: center;
+    }
+
+    /* ── Toolbar ─────────────────────────────────────────────────────────── */
+
+    .toolbar {
+      background: var(--white);
+      border-bottom: 1px solid var(--light);
+    }
+    .toolbar-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0.75rem 2rem;
+      display: flex;
+      gap: 0.6rem;
       flex-wrap: wrap;
       align-items: center;
-      background: #fff;
-      border-bottom: 1px solid #e2e4e9;
     }
 
-    .search-box {
-      flex: 1;
-      min-width: 200px;
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #d0d3da;
-      border-radius: 6px;
-      font-size: 0.9rem;
-    }
-    .search-box:focus { outline: none; border-color: #4a6cf7; }
-
-    .source-filter {
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #d0d3da;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      background: #fff;
-      cursor: pointer;
-    }
-    .source-filter:focus { outline: none; border-color: #4a6cf7; }
-
+    .search-box,
+    .source-filter,
     .date-input {
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #d0d3da;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      background: #fff;
-      color: #1a1a2e;
-      cursor: pointer;
+      padding: 0.45rem 0.75rem;
+      border: 1px solid var(--light);
+      border-radius: 4px;
+      font-family: var(--sans);
+      font-size: 0.85rem;
+      color: var(--ink);
+      background: var(--white);
+      transition: border-color 0.15s;
     }
-    .date-input:focus { outline: none; border-color: #4a6cf7; }
+    .search-box { flex: 1; min-width: 200px; }
+    .search-box:focus,
+    .source-filter:focus,
+    .date-input:focus { outline: none; border-color: var(--ink); }
+
     .date-label {
-      font-size: 0.78rem;
-      color: #6b7280;
+      font-size: 0.75rem;
+      color: var(--muted);
       white-space: nowrap;
     }
 
-    .stats { font-size: 0.8rem; color: #6b7280; margin-left: auto; white-space: nowrap; }
+    .stats {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-left: auto;
+      white-space: nowrap;
+    }
 
-    /* ── Entities bubble section ─────────────────────────────────────────── */
+    /* ── Trends section ──────────────────────────────────────────────────── */
 
     .entities-section {
-      background: #fff;
-      border-bottom: 1px solid #e2e4e9;
-      padding: 1rem 2rem 0.75rem;
+      background: var(--white);
+      border-bottom: 1px solid var(--light);
+    }
+    .entities-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem 0.75rem;
     }
 
-    .entities-header {
+    .main-tabs {
       display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      margin-bottom: 0.75rem;
+      border-bottom: 2px solid var(--light);
+      margin-bottom: 0;
     }
-
-    .entities-title {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #374151;
-      white-space: nowrap;
-    }
-
-    .label-filters {
-      display: flex;
-      gap: 0.4rem;
-      flex-wrap: wrap;
-    }
-
-    .label-btn {
-      padding: 0.25rem 0.65rem;
-      border-radius: 999px;
+    .main-tab {
+      padding: 0.65rem 1.1rem;
       font-size: 0.75rem;
       font-weight: 600;
-      border: 1.5px solid transparent;
-      cursor: pointer;
-      transition: all 0.15s;
-      background: #f3f4f6;
-      color: #374151;
-    }
-    .label-btn:hover { background: #e5e7eb; }
-    .label-btn.active { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
-    .label-btn[data-label="PER"].active   { background: #1d4ed8; border-color: #1d4ed8; }
-    .label-btn[data-label="ORG"].active   { background: #065f46; border-color: #065f46; }
-    .label-btn[data-label="GPE"].active   { background: #92400e; border-color: #92400e; }
-    .label-btn[data-label="EVENT"].active { background: #5b21b6; border-color: #5b21b6; }
-
-    .toggle-entities {
-      margin-left: auto;
-      font-size: 0.75rem;
-      color: #9ca3af;
-      background: none;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
       border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      background: none;
+      color: var(--muted);
       cursor: pointer;
-      padding: 0.2rem 0.4rem;
+      transition: color 0.12s, border-color 0.12s;
     }
-    .toggle-entities:hover { color: #374151; }
+    .main-tab:hover { color: var(--ink); }
+    .main-tab.open { color: var(--ink); border-bottom-color: var(--red); }
 
-    #bubble-chart {
-      width: 100%;
-      overflow: hidden;
-      transition: height 0.25s ease;
+    .main-panel { display: none; padding: 0.7rem 0 0.4rem; }
+    .main-panel.open { display: block; }
+
+    .label-filters { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+
+    .label-btn {
+      padding: 0.2rem 0.6rem;
+      border-radius: 2px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      border: 1px solid var(--light);
+      cursor: pointer;
+      transition: all 0.12s;
+      background: var(--white);
+      color: var(--muted);
     }
-    #bubble-chart.collapsed { height: 0 !important; }
+    .label-btn:hover { border-color: var(--ink); color: var(--ink); }
+    .label-btn.active                      { background: var(--ink);  color: var(--white); border-color: var(--ink); }
+    .label-btn[data-label="PER"].active    { background: #1d4ed8; border-color: #1d4ed8; }
+    .label-btn[data-label="ORG"].active    { background: #065f46; border-color: #065f46; }
+    .label-btn[data-label="GPE"].active    { background: #92400e; border-color: #92400e; }
+    .label-btn[data-label="EVENT"].active  { background: #5b21b6; border-color: #5b21b6; }
 
-    #bubble-chart svg { display: block; }
+    #bubble-chart, #topics-chart, #sources-chart, #places-chart {
+      width: 100%; overflow: hidden; transition: height 0.25s ease;
+    }
+    #bubble-chart svg, #topics-chart svg, #sources-chart svg, #places-chart svg { display: block; }
 
     .bubble-tooltip {
       position: fixed;
-      background: #1a1a2e;
-      color: #fff;
-      font-size: 0.78rem;
-      padding: 0.3rem 0.6rem;
-      border-radius: 5px;
+      background: var(--ink);
+      color: var(--white);
+      font-size: 0.75rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: 3px;
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.1s;
@@ -163,71 +190,90 @@
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 1.25rem;
-      padding: 1.5rem 2rem;
+      gap: 1px;
+      padding: 2rem;
       max-width: 1400px;
       margin: 0 auto;
     }
 
     .card {
-      background: #fff;
-      border-radius: 10px;
-      padding: 1.25rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+      background: var(--white);
+      border: 1px solid var(--light);
+      padding: 1.4rem 1.5rem;
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
-      transition: box-shadow 0.15s, transform 0.15s;
-      cursor: pointer;
+      gap: 0.65rem;
       text-decoration: none;
       color: inherit;
+      transition: border-color 0.15s;
+      position: relative;
     }
-    .card:hover {
-      box-shadow: 0 4px 16px rgba(0,0,0,.12);
-      transform: translateY(-2px);
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px;
+      height: 100%;
+      background: transparent;
+      transition: background 0.15s;
     }
+    .card:hover { border-color: #aaa; }
+    .card:hover::before { background: var(--red); }
 
     .card-source {
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #4a6cf7;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
     }
 
+    .badge {
+      font-size: 0.62rem;
+      font-weight: 500;
+      padding: 0.1rem 0.4rem;
+      border-radius: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-topic    { background: #f0f0f0; color: #555; }
+    .sentiment-positive { background: #d1fae5; color: #065f46; }
+    .sentiment-negative { background: #fee2e2; color: #991b1b; }
+    .sentiment-neutral  { background: #f3f4f6; color: #737373; }
+
     .card-title {
-      font-size: 1rem;
+      font-family: var(--serif);
+      font-size: 1.05rem;
       font-weight: 700;
-      line-height: 1.4;
-      color: #1a1a2e;
+      line-height: 1.35;
+      color: var(--ink);
     }
 
     .card-snippet {
-      font-size: 0.85rem;
-      color: #4b5563;
-      line-height: 1.55;
+      font-size: 0.83rem;
+      color: #525252;
+      line-height: 1.6;
       flex: 1;
     }
 
     .card-meta {
       display: flex;
       justify-content: space-between;
-      font-size: 0.75rem;
-      color: #9ca3af;
-      padding-top: 0.4rem;
-      border-top: 1px solid #f3f4f6;
+      font-size: 0.72rem;
+      color: var(--muted);
+      padding-top: 0.5rem;
+      border-top: 1px solid #f0f0f0;
     }
 
-    .tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.3rem;
-      margin-top: 0.2rem;
-    }
+    .tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
     .tag {
-      font-size: 0.68rem;
-      padding: 0.15rem 0.45rem;
-      border-radius: 4px;
+      font-size: 0.65rem;
+      padding: 0.12rem 0.4rem;
+      border-radius: 2px;
       font-weight: 500;
     }
     .tag-PER   { background: #dbeafe; color: #1d4ed8; }
@@ -252,9 +298,9 @@
       font-size: 0.85rem;
       transition: background 0.1s;
     }
-    .page-btn:hover:not(:disabled) { background: #f0f2ff; border-color: #4a6cf7; }
+    .page-btn:hover:not(:disabled) { background: var(--bg); border-color: var(--ink); }
     .page-btn:disabled { opacity: 0.4; cursor: default; }
-    .page-btn.active { background: #4a6cf7; color: #fff; border-color: #4a6cf7; }
+    .page-btn.active { background: var(--ink); color: var(--white); border-color: var(--ink); }
 
     .empty {
       grid-column: 1 / -1;
@@ -272,41 +318,59 @@
       height: 1em;
     }
     @keyframes shimmer { to { background-position: -400% 0; } }
+
   </style>
 </head>
 <body>
 
 <header>
-  <h1>🇳🇴 Norske Nyheter</h1>
-  <span id="last-updated"></span>
+  <div class="header-brand">
+    <span class="header-flag">🇳🇴</span>
+    <h1>Norske Nyheter</h1>
+    <div class="header-rule"></div>
+    <span id="last-updated"></span>
+  </div>
 </header>
 
 <div class="toolbar">
-  <input class="search-box" id="search" type="search" placeholder="Søk i tittel eller innhold…" />
-  <select class="source-filter" id="source-select">
-    <option value="">Alle kilder</option>
-  </select>
-  <span class="date-label">Fra</span>
-  <input class="date-input" id="date-from" type="date" />
-  <span class="date-label">Til</span>
-  <input class="date-input" id="date-to" type="date" />
-  <span class="stats" id="stats"></span>
+  <div class="toolbar-inner">
+    <input class="search-box" id="search" type="search" placeholder="Søk i tittel eller innhold…" />
+    <span class="date-label">Fra</span>
+    <input class="date-input" id="date-from" type="date" />
+    <span class="date-label">Til</span>
+    <input class="date-input" id="date-to" type="date" />
+    <span class="stats" id="stats"></span>
+  </div>
 </div>
 
-<!-- Entities bubble chart -->
 <section class="entities-section">
-  <div class="entities-header">
-    <span class="entities-title">Trender</span>
-    <div class="label-filters" id="label-filters">
-      <button class="label-btn active" data-label="">Alle</button>
-      <button class="label-btn" data-label="PER">Personer</button>
-      <button class="label-btn" data-label="ORG">Organisasjoner</button>
-      <button class="label-btn" data-label="GPE">Steder</button>
-      <button class="label-btn" data-label="EVENT">Hendelser</button>
+  <div class="entities-inner">
+    <div class="main-tabs" id="main-tabs">
+      <button class="main-tab open" data-panel="trends">Trender</button>
+      <button class="main-tab" data-panel="topics">Emner</button>
+      <button class="main-tab" data-panel="sources">Kilder</button>
+      <button class="main-tab" data-panel="places">Steder</button>
     </div>
-    <button class="toggle-entities" id="toggle-entities">Skjul ▲</button>
+    <div class="main-panel open" id="panel-trends">
+      <div class="label-filters" id="label-filters">
+        <button class="label-btn active" data-label="">Alle</button>
+        <button class="label-btn" data-label="PER">Personer</button>
+        <button class="label-btn" data-label="ORG">Organisasjoner</button>
+        <button class="label-btn" data-label="GPE">Steder</button>
+        <button class="label-btn" data-label="EVENT">Hendelser</button>
+      </div>
+      <div id="bubble-chart"></div>
+    </div>
+    <div class="main-panel" id="panel-topics">
+      <div id="topics-chart"></div>
+    </div>
+    <div class="main-panel" id="panel-sources">
+      <div id="sources-chart"></div>
+    </div>
+    <div class="main-panel" id="panel-places">
+      <div id="places-chart"></div>
+    </div>
   </div>
-  <div id="bubble-chart"></div>
 </section>
 
 <div class="bubble-tooltip" id="bubble-tooltip"></div>
@@ -319,7 +383,6 @@
   const grid       = document.getElementById('grid');
   const pagination = document.getElementById('pagination');
   const searchEl   = document.getElementById('search');
-  const sourceEl   = document.getElementById('source-select');
   const dateFromEl = document.getElementById('date-from');
   const dateToEl   = document.getElementById('date-to');
   const statsEl    = document.getElementById('stats');
@@ -328,8 +391,9 @@
 
   let currentPage  = 1;
   let activeLabel  = '';
+  let activeSource = '';
+  let activeTopic  = '';
   let searchTimer;
-  let bubblesCollapsed = false;
 
   // ── label colors (fill, stroke, text) ────────────────────────────────────
   const COLORS = {
@@ -358,12 +422,6 @@
       .join('');
   }
 
-  function fitText(text, r) {
-    if (r < 14) return '';
-    const maxChars = Math.floor((r * 2 * 0.82) / 7);
-    return text.length <= maxChars ? text : text.slice(0, maxChars - 1) + '…';
-  }
-
   function renderSkeletons() {
     grid.innerHTML = Array(6).fill(`
       <div class="card" style="pointer-events:none">
@@ -375,98 +433,215 @@
     pagination.innerHTML = '';
   }
 
-  // ── bubble chart ──────────────────────────────────────────────────────────
+  // ── treemap (generic) ────────────────────────────────────────────────────
 
-  async function loadEntities() {
-    const params = new URLSearchParams({ limit: 80, source: sourceEl.value });
-    if (activeLabel) params.set('label', activeLabel);
-    const data = await fetch(`/api/entities?${params}`).then(r => r.json());
-    drawBubbles(data);
-  }
+  const TOPIC_LABELS = {
+    politikk: 'Politikk', økonomi: 'Økonomi', sport: 'Sport',
+    kriminalitet: 'Kriminalitet', helse: 'Helse', teknologi: 'Teknologi',
+    klima: 'Klima', kultur: 'Kultur', utenriks: 'Utenriks',
+    forsvar: 'Forsvar', utdanning: 'Utdanning', samfunn: 'Samfunn',
+  };
 
-  function drawBubbles(entities) {
-    const container = document.getElementById('bubble-chart');
+  const TOPIC_COLORS = {
+    sport:        { fill: '#dbeafe', stroke: '#3b82f6', text: '#1e3a8a' },
+    kriminalitet: { fill: '#fee2e2', stroke: '#ef4444', text: '#7f1d1d' },
+    politikk:     { fill: '#fce7f3', stroke: '#ec4899', text: '#831843' },
+    økonomi:      { fill: '#d1fae5', stroke: '#10b981', text: '#064e3b' },
+    helse:        { fill: '#ede9fe', stroke: '#8b5cf6', text: '#3b0764' },
+    teknologi:    { fill: '#cffafe', stroke: '#06b6d4', text: '#164e63' },
+    klima:        { fill: '#dcfce7', stroke: '#22c55e', text: '#14532d' },
+    kultur:       { fill: '#fef9c3', stroke: '#eab308', text: '#713f12' },
+    utenriks:     { fill: '#ffedd5', stroke: '#f97316', text: '#7c2d12' },
+    forsvar:      { fill: '#e2e8f0', stroke: '#64748b', text: '#0f172a' },
+    utdanning:    { fill: '#fae8ff', stroke: '#a855f7', text: '#4a044e' },
+    samfunn:      { fill: '#f0fdf4', stroke: '#4ade80', text: '#14532d' },
+  };
+  const SOURCE_COLOR  = { fill: '#f0f2f5', stroke: '#94a3b8', text: '#1e293b' };
+  const SOURCE_ACTIVE = { fill: '#1e293b', stroke: '#0f172a', text: '#f8fafc' };
+
+  const PLACE_COLOR  = { fill: '#e0f2fe', stroke: '#38bdf8', text: '#0c4a6e' };
+  const PLACE_ACTIVE = { fill: '#0c4a6e', stroke: '#0369a1', text: '#f0f9ff' };
+
+  const PLACES = [
+    { city: 'Bergen',         source: 'Bergens Tidende' },
+    { city: 'Trondheim',      source: 'Adresseavisen' },
+    { city: 'Stavanger',      source: 'Stavanger Aftenblad' },
+    { city: 'Ålesund',        source: 'Sunnmørsposten' },
+    { city: 'Kristiansund',   source: 'Romsdals Budstikke' },
+    { city: 'Kristiansand',   source: 'Fædrelandsvennen' },
+    { city: 'Harstad',        source: 'Harstad Tidende' },
+    { city: 'Alta',           source: 'Altaposten' },
+    { city: 'Innherred',      source: 'Innherred' },
+    { city: 'Tromsø',         source: 'iTromsø' },
+    { city: 'Agder',          source: 'Agderposten' },
+    { city: 'Sunnhordland',   source: 'Sunnhordland' },
+    { city: 'Finnmark',       source: 'Framtid i Nord' },
+    { city: 'Trøndelag',      source: 'Trønderbladet' },
+    { city: 'Sør-Trøndelag',  source: 'Avisa Sør-Trøndelag' },
+    { city: 'Grenland',       source: 'Varden' },
+    { city: 'Bodø',           source: 'Avisa Nordland' },
+    { city: 'Moss',           source: 'Moss Avis' },
+    { city: 'Tønsberg',       source: 'Tønsbergs Blad' },
+    { city: 'Oppland',        source: 'Oppland Arbeiderblad' },
+    { city: 'Skien',          source: 'Telemarksavisa' },
+    { city: 'Fredrikstad',    source: 'Fredriksstad Blad' },
+    { city: 'Narvik',         source: 'Fremover' },
+    { city: 'Romerike',       source: 'Romerikes Blad' },
+    { city: 'Bærum',          source: 'Budstikka' },
+    { city: 'Lofoten',        source: 'Lofotposten' },
+    { city: 'Haugesund',      source: 'Haugesunds Avis' },
+    { city: 'Gudbrandsdalen', source: 'Gudbrandsdølen Dagningen' },
+    { city: 'Halden',         source: 'Halden Arbeiderblad' },
+    { city: 'Namsos',         source: 'Namdalsavisa' },
+    { city: 'Vesterålen',     source: 'Bladet Vesterålen' },
+    { city: 'Drammen',        source: 'Drammens Tidende' },
+  ];
+
+  function drawTreemap(data, containerId, H, colorFn, clickFn) {
+    const container = document.getElementById(containerId);
     container.innerHTML = '';
 
-    if (!entities.length) {
+    if (!data.length) {
       container.style.height = '60px';
-      container.innerHTML = '<p style="text-align:center;padding:1rem 2rem;color:#9ca3af;font-size:.85rem">Ingen trender funnet.</p>';
+      container.innerHTML = '<p style="text-align:center;padding:1rem 2rem;color:#9ca3af;font-size:.85rem">Ingen data funnet.</p>';
       return;
     }
 
     const W = container.clientWidth || 900;
-    const H = 260;
     container.style.height = H + 'px';
 
-    const root = d3.hierarchy({ children: entities })
+    const root = d3.hierarchy({ children: data })
       .sum(d => d.count)
       .sort((a, b) => b.value - a.value);
 
-    d3.pack().size([W, H]).padding(4)(root);
+    d3.treemap().size([W, H]).padding(3).round(true)(root);
 
-    const svg = d3.create('svg')
-      .attr('width', W)
-      .attr('height', H);
+    const svg = d3.create('svg').attr('width', W).attr('height', H);
 
     const node = svg.selectAll('g')
       .data(root.leaves())
       .join('g')
-      .attr('transform', d => `translate(${d.x},${d.y})`)
+      .attr('transform', d => `translate(${d.x0},${d.y0})`)
       .style('cursor', 'pointer')
-      .on('click', (event, d) => {
-        searchEl.value = d.data.text;
-        currentPage = 1;
-        loadArticles();
-        tooltip.style.opacity = 0;
-      })
+      .on('click', (event, d) => { clickFn(d.data); tooltip.style.opacity = 0; })
       .on('mousemove', (event, d) => {
-        tooltip.textContent = `${d.data.text}  ·  ${d.data.count} artikler`;
+        tooltip.textContent = `${d.data.text}  ·  ${d.data.count.toLocaleString('nb-NO')} artikler`;
         tooltip.style.opacity = 1;
         tooltip.style.left = (event.clientX + 12) + 'px';
         tooltip.style.top  = (event.clientY - 28) + 'px';
       })
       .on('mouseleave', () => { tooltip.style.opacity = 0; });
 
-    node.append('circle')
-      .attr('r', d => d.r)
-      .attr('fill', d => col(d.data.label).fill)
-      .attr('stroke', d => col(d.data.label).stroke)
+    node.append('rect')
+      .attr('width',  d => d.x1 - d.x0)
+      .attr('height', d => d.y1 - d.y0)
+      .attr('rx', 4)
+      .attr('fill',         d => colorFn(d.data).fill)
+      .attr('stroke',       d => colorFn(d.data).stroke)
       .attr('stroke-width', 1.5);
 
     node.append('text')
+      .attr('x', d => (d.x1 - d.x0) / 2)
+      .attr('y', d => (d.y1 - d.y0) / 2)
       .attr('text-anchor', 'middle')
-      .attr('dy', '0.35em')
-      .attr('fill', d => col(d.data.label).text)
-      .style('font-size', d => `${Math.min(13, Math.max(9, d.r * 0.42))}px`)
-      .style('font-weight', '600')
+      .attr('dominant-baseline', 'middle')
+      .attr('fill', d => colorFn(d.data).text)
       .style('pointer-events', 'none')
       .style('user-select', 'none')
-      .text(d => fitText(d.data.text, d.r));
+      .each(function(d) {
+        const w = d.x1 - d.x0, h = d.y1 - d.y0;
+        if (w < 24 || h < 14) return;
+        const fs = Math.min(13, Math.max(9, Math.sqrt(w * h) * 0.11));
+        const maxChars = Math.floor(w / (fs * 0.6));
+        const lbl = d.data.text.length <= maxChars ? d.data.text : d.data.text.slice(0, maxChars - 1) + '…';
+        d3.select(this).style('font-size', `${fs}px`).style('font-weight', '600').text(lbl);
+      });
 
     container.appendChild(svg.node());
   }
 
-  // Redraw on resize
+  async function loadEntities() {
+    const params = new URLSearchParams({ limit: 36, source: activeSource });
+    if (activeLabel) params.set('label', activeLabel);
+    const data = await fetch(`/api/entities?${params}`).then(r => r.json());
+    drawTreemap(data, 'bubble-chart', 280, d => col(d.label), d => {
+      searchEl.value = d.text; currentPage = 1; loadArticles();
+    });
+  }
+
+  async function loadTopicsChart() {
+    const data = await fetch('/api/topics').then(r => r.json());
+    const items = data.map(({ topic, count }) => ({ text: TOPIC_LABELS[topic] || topic, key: topic, count }));
+    drawTreemap(items, 'topics-chart', 220,
+      d => {
+        const c = TOPIC_COLORS[d.key] || SOURCE_COLOR;
+        return d.key === activeTopic ? { fill: c.stroke, stroke: c.stroke, text: '#fff' } : c;
+      },
+      d => {
+        activeTopic = activeTopic === d.key ? '' : d.key;
+        currentPage = 1; loadArticles(); loadTopicsChart();
+      }
+    );
+  }
+
+  async function loadSourcesChart() {
+    const data = await fetch('/api/sources').then(r => r.json());
+    const items = data.slice(0, 15).map(({ source, count }) => ({ text: source, count }));
+    drawTreemap(items, 'sources-chart', 240,
+      d => d.text === activeSource ? SOURCE_ACTIVE : SOURCE_COLOR,
+      d => {
+        activeSource = activeSource === d.text ? '' : d.text;
+        currentPage = 1; loadArticles(); loadSourcesChart();
+      }
+    );
+  }
+
+  async function loadPlacesChart() {
+    const data = await fetch('/api/sources').then(r => r.json());
+    const counts = Object.fromEntries(data.map(({ source, count }) => [source, count]));
+    const items = PLACES
+      .map(({ city, source }) => ({ text: city, source, count: counts[source] || 0 }))
+      .filter(d => d.count > 0)
+      .sort((a, b) => b.count - a.count);
+    drawTreemap(items, 'places-chart', 240,
+      d => d.source === activeSource ? PLACE_ACTIVE : PLACE_COLOR,
+      d => {
+        activeSource = activeSource === d.source ? '' : d.source;
+        currentPage = 1; loadArticles(); loadPlacesChart();
+      }
+    );
+  }
+
+  // Redraw active chart on resize
   let resizeTimer;
   new ResizeObserver(() => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(loadEntities, 150);
-  }).observe(document.getElementById('bubble-chart').parentElement);
+    resizeTimer = setTimeout(() => {
+      const active = document.querySelector('.main-tab.open');
+      if (!active) return;
+      const p = active.dataset.panel;
+      if (p === 'trends') loadEntities();
+      else if (p === 'topics') loadTopicsChart();
+      else if (p === 'sources') loadSourcesChart();
+      else if (p === 'places') loadPlacesChart();
+    }, 150);
+  }).observe(document.querySelector('.entities-inner'));
 
-  // ── toggle collapse ───────────────────────────────────────────────────────
+  // ── main tabs ─────────────────────────────────────────────────────────────
 
-  document.getElementById('toggle-entities').addEventListener('click', function () {
-    const chart = document.getElementById('bubble-chart');
-    bubblesCollapsed = !bubblesCollapsed;
-    if (bubblesCollapsed) {
-      chart.style.height = '0';
-      chart.style.overflow = 'hidden';
-      this.textContent = 'Vis ▼';
-    } else {
-      chart.style.overflow = '';
-      loadEntities();
-      this.textContent = 'Skjul ▲';
-    }
+  document.getElementById('main-tabs').addEventListener('click', e => {
+    const tab = e.target.closest('.main-tab');
+    if (!tab) return;
+    const panelId = 'panel-' + tab.dataset.panel;
+    if (document.getElementById(panelId).classList.contains('open')) return;
+    document.querySelectorAll('.main-panel').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('open'));
+    document.getElementById(panelId).classList.add('open');
+    tab.classList.add('open');
+    if (tab.dataset.panel === 'trends') loadEntities();
+    else if (tab.dataset.panel === 'topics') loadTopicsChart();
+    else if (tab.dataset.panel === 'sources') loadSourcesChart();
+    else if (tab.dataset.panel === 'places') loadPlacesChart();
   });
 
   // ── label filter buttons ──────────────────────────────────────────────────
@@ -480,18 +655,6 @@
     loadEntities();
   });
 
-  // ── sources dropdown ──────────────────────────────────────────────────────
-
-  async function loadSources() {
-    const data = await fetch('/api/sources').then(r => r.json());
-    data.forEach(({ source, count }) => {
-      const opt = document.createElement('option');
-      opt.value = source;
-      opt.textContent = `${source} (${count})`;
-      sourceEl.appendChild(opt);
-    });
-  }
-
   // ── articles ──────────────────────────────────────────────────────────────
 
   async function loadArticles() {
@@ -500,7 +663,8 @@
     const params = new URLSearchParams({
       page: currentPage,
       limit: 20,
-      source: sourceEl.value,
+      source: activeSource,
+      topic: activeTopic,
       q: searchEl.value.trim(),
       date_from: dateFromEl.value,
       date_to: dateToEl.value,
@@ -517,9 +681,14 @@
       return;
     }
 
+    const sentimentLabel = { positive: 'Positiv', negative: 'Negativ', neutral: 'Nøytral' };
+
     grid.innerHTML = data.articles.map(a => `
       <a class="card" href="${a.url}" target="_blank" rel="noopener">
-        <div class="card-source">${a.source || 'Ukjent kilde'}</div>
+        <div class="card-source">
+          ${a.source || 'Ukjent kilde'}
+          ${a.sentiment ? `<span class="badge sentiment-${a.sentiment}">${sentimentLabel[a.sentiment] || a.sentiment}</span>` : ''}
+        </div>
         <div class="card-title">${a.title || 'Uten tittel'}</div>
         ${a.snippet ? `<div class="card-snippet">${a.snippet}…</div>` : ''}
         ${tagHtml(a.entities) ? `<div class="tags">${tagHtml(a.entities)}</div>` : ''}
@@ -555,17 +724,10 @@
     searchTimer = setTimeout(() => { currentPage = 1; loadArticles(); }, 400);
   });
 
-  sourceEl.addEventListener('change', () => {
-    currentPage = 1;
-    loadArticles();
-    if (!bubblesCollapsed) loadEntities();
-  });
-
   dateFromEl.addEventListener('change', () => { currentPage = 1; loadArticles(); });
   dateToEl.addEventListener('change',   () => { currentPage = 1; loadArticles(); });
 
   // ── init ──────────────────────────────────────────────────────────────────
-  loadSources();
   loadArticles();
   loadEntities();
 </script>

@@ -201,6 +201,7 @@ SKIP_URL_PATTERNS = [
 
 SPACY_MODEL = "nb_core_news_lg"
 SBERT_MODEL = "NbAiLab/nb-sbert-base"
+SENTIMENT_MODEL = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
 
 NER_LABELS = {"PER", "ORG", "GPE", "LOC", "EVENT"}
 NLP_TEXT_LIMIT = 5000

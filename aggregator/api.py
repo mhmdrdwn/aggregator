@@ -25,6 +25,7 @@ def list_articles(
     q: str = Query(""),
     date_from: str = Query(""),
     date_to: str = Query(""),
+    topic: str = Query(""),
 ):
     offset = (page - 1) * limit
 
@@ -43,6 +44,9 @@ def list_articles(
     if date_to:
         where_clauses.append("published_at < (%s::date + interval '1 day')")
         params.append(date_to)
+    if topic:
+        where_clauses.append("topic = %s")
+        params.append(topic)
 
     where_sql = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
 
@@ -59,7 +63,7 @@ def list_articles(
 
             cur.execute(
                 f"""
-                SELECT id, url, title, body, author, published_at, source, entities, link_url
+                SELECT id, url, title, body, author, published_at, source, entities, sentiment, sentiment_score, topic
                 FROM articles
                 {where_sql}
                 ORDER BY published_at DESC NULLS LAST, created_at DESC
@@ -73,7 +77,7 @@ def list_articles(
 
     articles = []
     for row in rows:
-        id_, url, title, body, author, published_at, source_, entities, link_url = row
+        id_, url, title, body, author, published_at, source_, entities, sentiment, sentiment_score, topic = row
         articles.append(
             {
                 "id": id_,
@@ -84,6 +88,9 @@ def list_articles(
                 "published_at": published_at.isoformat() if published_at else None,
                 "source": source_,
                 "entities": entities if isinstance(entities, list) else [],
+                "sentiment": sentiment,
+                "sentiment_score": sentiment_score,
+                "topic": topic,
             }
         )
 
@@ -133,6 +140,19 @@ def list_entities(
                 params + [limit],
             )
             return [{"text": r[0], "label": r[1], "count": r[2]} for r in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+@app.get("/api/topics")
+def list_topics():
+    conn = psycopg2.connect(DATABASE_URL)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT topic, COUNT(*) FROM articles WHERE topic IS NOT NULL GROUP BY topic ORDER BY COUNT(*) DESC"
+            )
+            return [{"topic": row[0], "count": row[1]} for row in cur.fetchall()]
     finally:
         conn.close()
 

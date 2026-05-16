@@ -5,7 +5,7 @@ import time
 import schedule
 
 from .config import SCHEDULE_INTERVAL_MINUTES
-from .pipeline import run_pipeline
+from .pipeline import run_backfill, run_pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,10 @@ def _run_in_thread() -> None:
                 run_pipeline()
             except Exception as e:
                 logger.error(f"Pipeline crashed — will retry next cycle: {e}", exc_info=True)
+            try:
+                run_backfill(batch_size=50)
+            except Exception as e:
+                logger.error(f"Backfill crashed: {e}", exc_info=True)
 
     threading.Thread(target=_worker, daemon=True).start()
 

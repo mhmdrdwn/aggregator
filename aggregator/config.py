@@ -48,6 +48,10 @@ NORWEGIAN_RSS_FEEDS = [
     # --- Tech & investigative (direct RSS) ---
     "https://www.tu.no/rss",                # Teknisk Ukeblad (engineering/tech)
     "https://www.filternyheter.no/feed",    # Filter Nyheter (investigative)
+
+    # --- Publishers previously only reached via Google News ---
+    "https://morgenbladet.no/rss",          # Morgenbladet (weekly quality newspaper)
+    "https://hallingdolen.no/rss",          # Hallingdølen (Hallingdal regional)
 ]
 
 # Domains with no RSS and no sitemap — paywall/subscriber-only
@@ -59,6 +63,11 @@ NORWEGIAN_NEWS_SITEMAPS = [
     # sitemap URL                                      publisher name
     ("https://www.dagbladet.no/sitemap.xml",          "Dagbladet"),
     ("https://www.dn.no/sitemap/news.xml",            "Dagens Næringsliv"),
+    ("https://www.vl.no/sitemap.xml",                 "Vårt Land"),
+    ("https://www.dagen.no/sitemap.xml",              "Dagen"),
+    ("https://www.shifter.no/sitemap.xml",            "Shifter"),
+    # Paginated sitemap — first page always has the newest articles
+    ("https://www.abcnyheter.no/sitemap?start=0&pageType=article", "ABC Nyheter"),
 ]
 
 # Amedia papers that have no RSS/sitemap — crawl their homepage for article links.
@@ -132,6 +141,12 @@ DOMAIN_TO_NAME = {
     "altaposten.no":       "Altaposten",
     "folkebladet.no":      "Folkebladet",
     "framtidinord.no":     "Framtid i Nord",
+    "morgenbladet.no":     "Morgenbladet",
+    "hallingdolen.no":     "Hallingdølen",
+    "vl.no":               "Vårt Land",
+    "dagen.no":            "Dagen",
+    "shifter.no":          "Shifter",
+    "abcnyheter.no":       "ABC Nyheter",
     # Amedia papers (homepage crawler)
     "rb.no":               "Romerikes Blad",
     "budstikka.no":        "Budstikka",

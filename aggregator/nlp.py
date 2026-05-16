@@ -127,19 +127,146 @@ def classify_topic(title: str, text: str, embedding: list[float]) -> str:
 
 _LABEL_NORM = {"GPE_LOC": "GPE", "GPE_ORG": "GPE", "EVT": "EVENT"}
 
+# (text.lower(), label) → canonical display name
+_ENTITY_ALIASES: dict[tuple[str, str], str] = {
+    # --- International political figures ---
+    ("trump", "PER"):              "Donald Trump",
+    ("trumps", "PER"):             "Donald Trump",
+    ("donald trumps", "PER"):      "Donald Trump",
+    ("xi", "PER"):                 "Xi Jinping",
+    ("xis", "PER"):                "Xi Jinping",
+    ("putin", "PER"):              "Vladimir Putin",
+    ("putins", "PER"):             "Vladimir Putin",
+    ("vladimir putins", "PER"):    "Vladimir Putin",
+    ("netanyahu", "PER"):          "Benjamin Netanyahu",
+    ("netanyahus", "PER"):         "Benjamin Netanyahu",
+    ("macron", "PER"):             "Emmanuel Macron",
+    ("macrons", "PER"):            "Emmanuel Macron",
+    ("orban", "PER"):              "Viktor Orbán",
+    ("orbán", "PER"):              "Viktor Orbán",
+    ("orbans", "PER"):             "Viktor Orbán",
+    ("orbáns", "PER"):             "Viktor Orbán",
+    ("zelenskyj", "PER"):          "Volodymyr Zelenskyj",
+    ("zelenskyjs", "PER"):         "Volodymyr Zelenskyj",
+    ("zelensky", "PER"):           "Volodymyr Zelenskyj",
+    ("zelenskij", "PER"):          "Volodymyr Zelenskyj",
+    ("biden", "PER"):              "Joe Biden",
+    ("bidens", "PER"):             "Joe Biden",
+    ("rubio", "PER"):              "Marco Rubio",
+    ("rubios", "PER"):             "Marco Rubio",
+    ("hegseth", "PER"):            "Pete Hegseth",
+    ("hegseths", "PER"):           "Pete Hegseth",
+    ("powell", "PER"):             "Jerome Powell",
+    ("powells", "PER"):            "Jerome Powell",
+
+    # --- Norwegian political figures ---
+    ("støre", "PER"):                    "Jonas Gahr Støre",
+    ("støres", "PER"):                   "Jonas Gahr Støre",
+    ("jonas gahr støres", "PER"):        "Jonas Gahr Støre",
+    ("stoltenberg", "PER"):              "Jens Stoltenberg",
+    ("stoltenbergs", "PER"):             "Jens Stoltenberg",
+    ("jens stoltenbergs", "PER"):        "Jens Stoltenberg",
+    ("listhaug", "PER"):                 "Sylvi Listhaug",
+    ("listhaugs", "PER"):                "Sylvi Listhaug",
+    ("sylvi listhaugs", "PER"):          "Sylvi Listhaug",
+    ("vedum", "PER"):                    "Trygve Slagsvold Vedum",
+    ("vedums", "PER"):                   "Trygve Slagsvold Vedum",
+    ("skjæran", "PER"):                  "Bjørnar Skjæran",
+    ("skjærans", "PER"):                 "Bjørnar Skjæran",
+    ("erna solbergs", "PER"):            "Erna Solberg",
+    ("solbergs", "PER"):                 "Erna Solberg",
+    ("høiby", "PER"):                    "Marius Borg Høiby",
+    ("høibys", "PER"):                   "Marius Borg Høiby",
+    ("marius borg høibys", "PER"):       "Marius Borg Høiby",
+
+    # --- Sports figures ---
+    ("warholm", "PER"):                  "Karsten Warholm",
+    ("warholms", "PER"):                 "Karsten Warholm",
+    ("karsten warholms", "PER"):         "Karsten Warholm",
+    ("mbappé", "PER"):                   "Kylian Mbappé",
+    ("mbappés", "PER"):                  "Kylian Mbappé",
+    ("mbappe", "PER"):                   "Kylian Mbappé",
+    ("erling haalands", "PER"):          "Erling Haaland",
+    ("erling braut haalands", "PER"):    "Erling Haaland",
+    ("erling braut haaland", "PER"):     "Erling Haaland",
+
+    # --- GPE genitives (Norwegian possessive -s suffix) ---
+    ("norges", "GPE"):       "Norge",
+    ("usas", "GPE"):         "USA",
+    ("kinas", "GPE"):        "Kina",
+    ("israels", "GPE"):      "Israel",
+    ("russlands", "GPE"):    "Russland",
+    ("ukrainas", "GPE"):     "Ukraina",
+    ("irans", "GPE"):        "Iran",
+    ("europas", "GPE"):      "Europa",
+    ("natos", "GPE"):        "NATO",
+    ("natos", "ORG"):        "NATO",
+    ("nato", "ORG"):         "NATO",
+    ("nato", "GPE"):         "NATO",
+    ("eus", "GPE"):          "EU",
+    ("eus", "ORG"):          "EU",
+    ("fns", "GPE"):          "FN",
+    ("fns", "ORG"):          "FN",
+    ("oslos", "GPE"):        "Oslo",
+    ("polens", "GPE"):       "Polen",
+    ("frankrikes", "GPE"):   "Frankrike",
+    ("tysklands", "GPE"):    "Tyskland",
+    ("storbritannias", "GPE"): "Storbritannia",
+    ("japans", "GPE"):       "Japan",
+    ("indias", "GPE"):       "India",
+    ("bergens", "GPE"):      "Bergen",
+    ("trondheims", "GPE"):   "Trondheim",
+    ("stavangers", "GPE"):   "Stavanger",
+    ("tromsøs", "GPE"):      "Tromsø",
+    ("kinas", "GPE"):        "Kina",
+    ("sverigas", "GPE"):     "Sverige",
+    ("Sveriges", "GPE"):     "Sverige",
+    ("danmarks", "GPE"):     "Danmark",
+    ("finlands", "GPE"):     "Finland",
+}
+
+
+def _normalize_entity(text: str, label: str) -> str:
+    key = (text.lower(), label)
+    canon = _ENTITY_ALIASES.get(key)
+    if canon:
+        return canon
+    # Strip Norwegian genitive 's' and retry (e.g. "Kylian Mbappés" → "Kylian Mbappé")
+    if text.endswith("s") and len(text) > 3:
+        key2 = (text[:-1].lower(), label)
+        canon2 = _ENTITY_ALIASES.get(key2)
+        if canon2:
+            return canon2
+    return text
+
+
+def normalize_entities(entities: list[dict]) -> list[dict]:
+    """Normalize surface forms and deduplicate within a single article."""
+    seen: set[tuple[str, str]] = set()
+    result: list[dict] = []
+    for ent in entities:
+        normalized = _normalize_entity(ent["text"], ent["label"])
+        key = (normalized, ent["label"])
+        if key not in seen:
+            seen.add(key)
+            result.append({"text": normalized, "label": ent["label"]})
+    return result
+
 
 def _ner(text: str) -> list[dict]:
     doc = _spacy_model()(text[:NLP_TEXT_LIMIT])
-    return [
+    raw = [
         {"text": ent.text, "label": _LABEL_NORM.get(ent.label_, ent.label_)}
         for ent in doc.ents
         if ent.label_ in NER_LABELS
     ]
+    return normalize_entities(raw)
 
 
 def process_articles(raw_articles: list[dict]) -> list[dict]:
     """Process a batch of raw trafilatura dicts — NER + embeddings in one shot."""
-    valid = [a for a in raw_articles if a.get("text")]
+    # Require at least a title or some body — title alone is enough for sentiment
+    valid = [a for a in raw_articles if (a.get("title") or len(a.get("text") or "") >= 20)]
     if not valid:
         return []
 
@@ -162,7 +289,7 @@ def process_articles(raw_articles: list[dict]) -> list[dict]:
 
     results = []
     for a, entities, embedding, sent in zip(valid, entities_list, embeddings, sentiment_results):
-        top = sent[0]
+        top = sent[0] if sent else {}
         emb_list = embedding.tolist()
         results.append({
             "title": a.get("title", ""),
@@ -174,8 +301,8 @@ def process_articles(raw_articles: list[dict]) -> list[dict]:
             "entities": entities,
             "embedding": emb_list,
             "link_url": a.get("link_url"),
-            "sentiment": top["label"],
-            "sentiment_score": round(top["score"], 3),
+            "sentiment": top.get("label") or "neutral",
+            "sentiment_score": round(top.get("score", 0.5), 3),
             "topic": classify_topic(a.get("title", ""), a["text"], emb_list),
         })
 

@@ -224,10 +224,13 @@ SKIP_URL_PATTERNS = [
     "/tv/n/",            # Polaris Media video path pattern
     "/video/",           # Generic video path
     "playlistId=",       # Schibsted video/audio story pages (aftenbladet, bt, fvn, etc.)
+    "news.google.com",   # Google News redirect stubs — body is just the title (66-76 chars)
     "google.com/search", # Google Search fallback URLs — not articles
     "google.com/sorry",  # Google rate-limit page
     "/sok/?q=",          # Publisher search pages (fvn, adressa, etc.) — not articles
     "/search?q=",        # Generic publisher search pages
+    "vgtv",              # VG video teasers ("Se X på 25 minutter - VGTV")
+    "/v/5-",             # Amedia video article type
 ]
 
 SPACY_MODEL = "nb_core_news_lg"

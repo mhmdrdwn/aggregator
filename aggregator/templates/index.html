@@ -950,9 +950,19 @@
     const maxVal = d3.max(data.series.flatMap(s => s.values)) || 1;
     const y = d3.scaleLinear().domain([0, maxVal]).range([h, 0]).nice();
 
-    const line = d3.line()
+    const todayStr = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD
+    const todayIdx = data.dates.indexOf(todayStr);
+
+    const lineUpToToday = d3.line()
       .x((v, i) => x(data.dates[i]))
       .y(v => y(v))
+      .defined((v, i) => todayIdx < 0 || i < todayIdx)
+      .curve(d3.curveMonotoneX);
+
+    const lineTodaySegment = d3.line()
+      .x((v, i) => x(data.dates[i]))
+      .y(v => y(v))
+      .defined((v, i) => todayIdx >= 1 && (i === todayIdx - 1 || i === todayIdx))
       .curve(d3.curveMonotoneX);
 
     const svg = d3.create('svg').attr('width', W).attr('height', H);
@@ -963,16 +973,41 @@
       .call(a => a.select('.domain').remove())
       .call(a => a.selectAll('line').attr('stroke', '#f0f0f0'));
 
+    // Vertical "today" band
+    if (todayIdx >= 0) {
+      const tx = x(todayStr);
+      g.append('rect')
+        .attr('x', tx - 8).attr('y', 0).attr('width', 16).attr('height', h)
+        .attr('fill', '#f3f4f6').attr('rx', 2);
+      g.append('text')
+        .attr('x', tx).attr('y', -2).attr('text-anchor', 'middle')
+        .style('font-size', '8px').style('fill', '#9ca3af')
+        .text('i dag →');
+    }
+
     data.series.forEach((s, i) => {
       const color = LINE_COLORS[i % LINE_COLORS.length];
+      // Solid line up to (not including) today
       g.append('path').datum(s.values)
-        .attr('fill', 'none').attr('stroke', color).attr('stroke-width', 2).attr('d', line);
+        .attr('fill', 'none').attr('stroke', color).attr('stroke-width', 2)
+        .attr('d', lineUpToToday);
+      // Dashed segment from yesterday → today (partial day)
+      if (todayIdx >= 1) {
+        g.append('path').datum(s.values)
+          .attr('fill', 'none').attr('stroke', color).attr('stroke-width', 1.5)
+          .attr('stroke-dasharray', '4 3').attr('opacity', 0.7)
+          .attr('d', lineTodaySegment);
+      }
       g.selectAll(null).data(s.values).join('circle')
         .attr('cx', (v, j) => x(data.dates[j])).attr('cy', v => y(v))
-        .attr('r', 3).attr('fill', color)
+        .attr('r', (v, j) => j === todayIdx ? 4 : 3)
+        .attr('fill', (v, j) => j === todayIdx ? 'white' : color)
+        .attr('stroke', color)
+        .attr('stroke-width', (v, j) => j === todayIdx ? 2 : 0)
         .on('mousemove', (event, v) => {
           const j = s.values.indexOf(v);
-          tooltip.textContent = `${s.entity}  ·  ${data.dates[j]}  ·  ${v} art.`;
+          const partial = j === todayIdx ? ' (dag pågår)' : '';
+          tooltip.textContent = `${s.entity}  ·  ${data.dates[j]}  ·  ${v} art.${partial}`;
           tooltip.style.opacity = 1;
           tooltip.style.left = (event.clientX + 12) + 'px';
           tooltip.style.top  = (event.clientY - 28) + 'px';

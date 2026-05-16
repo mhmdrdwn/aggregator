@@ -13,9 +13,10 @@ _SESSION.headers.update({"User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1)"
 
 _SITEMAP_MAX_AGE_HOURS = 48
 
-# Amedia article URL pattern: /{slug}/{type}/5-{pub_id}-{article_id}
+# Amedia article URL pattern: /{slug}/{type}/{prefix}-{pub_id}-{article_id}
+# Most papers use prefix 5; some older Amedia papers (e.g. Østlendingen) use 80.
 # Types: s=story, f=feature, o=opinion (skip v=video, g=gallery)
-_AMEDIA_ARTICLE_RE = re.compile(r'/[^/"\s<>]+/[sfo]/5-\d+-\d+')
+_AMEDIA_ARTICLE_RE = re.compile(r'/[^/"\s<>]+/[sfo]/\d+-\d+-\d+')
 
 
 def _parse_sitemap_date(date_str: str) -> datetime | None:

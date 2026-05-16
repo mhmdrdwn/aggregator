@@ -1,18 +1,21 @@
 CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE TABLE IF NOT EXISTS articles (
-    id           SERIAL PRIMARY KEY,
-    url          TEXT UNIQUE NOT NULL,
-    title        TEXT,
-    body         TEXT,
-    author       TEXT,
-    published_at TIMESTAMP,
-    source       TEXT,
-    embedding    vector(768),
-    cluster_id   INTEGER,
-    entities     JSONB,
-    link_url     TEXT,
-    created_at   TIMESTAMP DEFAULT NOW()
+    id              SERIAL PRIMARY KEY,
+    url             TEXT UNIQUE NOT NULL,
+    title           TEXT,
+    body            TEXT,
+    author          TEXT,
+    published_at    TIMESTAMP,
+    source          TEXT,
+    embedding       vector(768),
+    cluster_id      INTEGER,
+    entities        JSONB,
+    link_url        TEXT,
+    sentiment       TEXT,
+    sentiment_score NUMERIC(5, 3),
+    topic           TEXT,
+    created_at      TIMESTAMP DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS articles_embedding_idx

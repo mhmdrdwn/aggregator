@@ -5,7 +5,10 @@ import psycopg2
 from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse
 
-from .config import DATABASE_URL
+from .config import DATABASE_URL, DOMAIN_TO_NAME
+
+# Canonical set of source names we actively crawl — used to filter out junk
+_KNOWN_SOURCES = frozenset(DOMAIN_TO_NAME.values())
 
 app = FastAPI(title="Norwegian News Aggregator")
 
@@ -302,6 +305,58 @@ def list_sources():
             cur.execute(
                 "SELECT source, COUNT(*) FROM articles WHERE source IS NOT NULL GROUP BY source ORDER BY COUNT(*) DESC"
             )
-            return [{"source": row[0], "count": row[1]} for row in cur.fetchall()]
+            return [
+                {"source": row[0], "count": row[1]}
+                for row in cur.fetchall()
+                if row[0] in _KNOWN_SOURCES
+            ]
     finally:
         conn.close()
+
+
+@app.get("/api/coverage")
+def coverage(days: int = Query(14, ge=1, le=90)):
+    """Per-source daily article counts for the last `days` days."""
+    conn = psycopg2.connect(DATABASE_URL)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT source,
+                       DATE(published_at) AS day,
+                       COUNT(*)           AS cnt
+                FROM   articles
+                WHERE  published_at >= NOW() - INTERVAL '1 day' * %s
+                  AND  source IS NOT NULL
+                  AND  published_at IS NOT NULL
+                GROUP  BY source, day
+                ORDER  BY source, day
+                """,
+                (days,),
+            )
+            rows = cur.fetchall()
+    finally:
+        conn.close()
+
+    from datetime import date, timedelta
+    today = date.today()
+    date_range = [(today - timedelta(days=i)).isoformat() for i in range(days - 1, -1, -1)]
+
+    by_source: dict = {}
+    for source, day, cnt in rows:
+        if source not in _KNOWN_SOURCES:
+            continue
+        if source not in by_source:
+            by_source[source] = {}
+        by_source[source][day.isoformat()] = cnt
+
+    series = [
+        {
+            "source": src,
+            "total": sum(by_date.values()),
+            "daily": [by_date.get(d, 0) for d in date_range],
+        }
+        for src, by_date in sorted(by_source.items(), key=lambda x: -sum(x[1].values()))
+    ]
+
+    return {"dates": date_range, "series": series}

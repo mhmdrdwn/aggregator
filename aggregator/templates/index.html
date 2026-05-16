@@ -228,6 +228,14 @@
     .legend-dot.negative { background: #f87171; }
     #sentiment-chart, #sov-chart { width: 100%; }
 
+    /* ── Coverage heatmap ────────────────────────────────────────────────── */
+    .coverage-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    .coverage-table th { font-weight: 600; text-align: center; padding: 4px 6px; color: var(--muted); font-size: 0.7rem; }
+    .coverage-table td { padding: 2px 3px; }
+    .coverage-table .src-label { text-align: right; padding-right: 8px; white-space: nowrap; color: var(--ink); font-weight: 500; cursor: pointer; }
+    .coverage-table .src-label:hover { color: var(--red); }
+    .cov-cell { width: 28px; height: 22px; border-radius: 3px; text-align: center; line-height: 22px; font-size: 0.68rem; font-weight: 600; }
+
     /* ── Article grid ────────────────────────────────────────────────────── */
 
     .grid {
@@ -393,6 +401,7 @@
       <button class="main-tab" data-panel="topics">Emner</button>
       <button class="main-tab" data-panel="sources">Kilder</button>
       <button class="main-tab" data-panel="places">Steder</button>
+      <button class="main-tab" data-panel="coverage">Dekning</button>
     </div>
     <div class="main-panel open" id="panel-trends">
       <div class="label-filters" id="label-filters">
@@ -412,6 +421,9 @@
     </div>
     <div class="main-panel" id="panel-places">
       <div id="places-chart"></div>
+    </div>
+    <div class="main-panel" id="panel-coverage">
+      <div id="coverage-chart"></div>
     </div>
   </div>
 </section>
@@ -535,11 +547,13 @@
     { city: 'Harstad',        source: 'Harstad Tidende' },
     { city: 'Alta',           source: 'Altaposten' },
     { city: 'Innherred',      source: 'Innherred' },
-    { city: 'Tromsø',         source: 'iTromsø' },
+    { city: 'Tromsø',         source: 'Nordlys' },
+    { city: 'Nord-Tromsø',    source: 'iTromsø' },
     { city: 'Agder',          source: 'Agderposten' },
     { city: 'Sunnhordland',   source: 'Sunnhordland' },
     { city: 'Finnmark',       source: 'Framtid i Nord' },
-    { city: 'Trøndelag',      source: 'Trønderbladet' },
+    { city: 'Trøndelag',      source: 'Trønder-Avisa' },
+    { city: 'Trønderbladet',  source: 'Trønderbladet' },
     { city: 'Sør-Trøndelag',  source: 'Avisa Sør-Trøndelag' },
     { city: 'Grenland',       source: 'Varden' },
     { city: 'Bodø',           source: 'Avisa Nordland' },
@@ -558,6 +572,11 @@
     { city: 'Namsos',         source: 'Namdalsavisa' },
     { city: 'Vesterålen',     source: 'Bladet Vesterålen' },
     { city: 'Drammen',        source: 'Drammens Tidende' },
+    { city: 'Mo i Rana',      source: 'Rana Blad' },
+    { city: 'Hamar',          source: 'Hamar Arbeiderblad' },
+    { city: 'Elverum',        source: 'Østlendingen' },
+    { city: 'Kongsvinger',    source: 'Glåmdalen' },
+    { city: 'Steinkjer',      source: 'Steinkjer-Avisa' },
   ];
 
   function drawTreemap(data, containerId, H, colorFn, clickFn) {
@@ -675,6 +694,91 @@
     );
   }
 
+  let _coverageLoading = false;
+
+  async function loadCoverageChart() {
+    if (_coverageLoading) return;
+    _coverageLoading = true;
+    const container = document.getElementById('coverage-chart');
+    if (!container.hasChildNodes())
+      container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:.5rem">Laster dekningsdata…</p>';
+
+    let data;
+    try { data = await fetch('/api/coverage?days=14').then(r => r.json()); }
+    finally { _coverageLoading = false; }
+    if (!data) return;
+    const { dates, series } = data;
+    if (!series.length) { container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:.5rem">Ingen data.</p>'; return; }
+
+    // Color scale: 0=very light gray, 1-4=light green, 5-14=medium green, 15+=dark green
+    function cellColor(n) {
+      if (n === 0)  return '#f1f5f9';
+      if (n < 5)   return '#bbf7d0';
+      if (n < 15)  return '#4ade80';
+      return '#16a34a';
+    }
+    function textColor(n) { return n >= 15 ? '#fff' : n === 0 ? '#94a3b8' : '#166534'; }
+
+    // Day labels: "lø 10", "sø 11", "ma 12", etc.
+    const DAY_NO = ['sø','ma','ti','on','to','fr','lø'];
+    function dayLabel(iso) {
+      const d = new Date(iso + 'T12:00:00');
+      return DAY_NO[d.getDay()] + ' ' + d.getDate();
+    }
+
+    const table = document.createElement('table');
+    table.className = 'coverage-table';
+
+    // Header row
+    const thead = table.createTHead();
+    const hrow = thead.insertRow();
+    const th0 = document.createElement('th');
+    th0.textContent = 'Kilde';
+    hrow.appendChild(th0);
+    dates.forEach(d => {
+      const th = document.createElement('th');
+      th.textContent = dayLabel(d);
+      hrow.appendChild(th);
+    });
+
+    // Body: one row per source, sorted by total desc
+    const tbody = table.createTBody();
+    series.forEach(({ source, daily }) => {
+      const recentZero = daily.slice(-3).some(n => n === 0);
+      const row = tbody.insertRow();
+      const label = row.insertCell();
+      label.className = 'src-label';
+      label.textContent = source;
+      if (recentZero) label.style.color = '#dc2626';
+      label.title = 'Klikk for å filtrere';
+      label.addEventListener('click', () => {
+        activeSource = activeSource === source ? '' : source;
+        currentPage = 1; loadArticles(); loadCoverageChart();
+      });
+      if (source === activeSource) label.style.fontWeight = '700';
+
+      daily.forEach(n => {
+        const cell = row.insertCell();
+        const div = document.createElement('div');
+        div.className = 'cov-cell';
+        div.style.background = cellColor(n);
+        div.style.color = textColor(n);
+        div.textContent = n > 0 ? n : '';
+        cell.appendChild(div);
+      });
+    });
+
+    container.innerHTML = '';
+    container.appendChild(table);
+
+    const total = series.length;
+    const silent = series.filter(s => s.daily.slice(-1)[0] === 0).length;
+    const note = document.createElement('p');
+    note.style.cssText = 'font-size:.72rem;color:var(--muted);margin-top:.5rem';
+    note.textContent = `${total} kilder · ${total - silent} aktive i dag · ${silent} stille`;
+    container.appendChild(note);
+  }
+
   // Redraw active chart on resize
   let resizeTimer;
   new ResizeObserver(() => {
@@ -687,6 +791,7 @@
       else if (p === 'topics') loadTopicsChart();
       else if (p === 'sources') loadSourcesChart();
       else if (p === 'places') loadPlacesChart();
+      // coverage is an HTML table — no pixel redraw needed on resize
     }, 150);
   }).observe(document.querySelector('.entities-inner'));
 
@@ -705,6 +810,7 @@
     else if (tab.dataset.panel === 'topics') loadTopicsChart();
     else if (tab.dataset.panel === 'sources') loadSourcesChart();
     else if (tab.dataset.panel === 'places') loadPlacesChart();
+    else if (tab.dataset.panel === 'coverage') loadCoverageChart();
   });
 
   // ── label filter buttons ──────────────────────────────────────────────────

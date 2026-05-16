@@ -50,8 +50,8 @@ NORWEGIAN_RSS_FEEDS = [
     "https://www.filternyheter.no/feed",    # Filter Nyheter (investigative)
 ]
 
-# Domains with no RSS and no sitemap — covered by Google News only
-RSS_UNAVAILABLE = ["nettavisen.no", "klassekampen.no"]
+# Domains with no RSS and no sitemap — paywall/subscriber-only
+RSS_UNAVAILABLE = ["klassekampen.no"]
 
 # News sitemaps — give direct article URLs, updated continuously.
 # Replaces Google News for publishers that have them.
@@ -81,6 +81,22 @@ AMEDIA_PAPERS = [
     ("https://www.namdalsavisa.no",       "Namdalsavisa"),
     ("https://www.oa.no",                 "Oppland Arbeiderblad"),
     ("https://www.gd.no",                 "Gudbrandsdølen Dagningen"),
+
+    # --- High-traffic national / major regionals (also Amedia) ---
+    ("https://www.nettavisen.no",         "Nettavisen"),
+
+    # --- Polaris Media regionals on Amedia platform ---
+    ("https://www.nordlys.no",            "Nordlys"),         # Tromsø/Nord-Norge
+    ("https://www.t-a.no",               "Trønder-Avisa"),   # Steinkjer/Trøndelag
+    ("https://www.h-a.no",               "Hamar Arbeiderblad"),
+    ("https://www.ranablad.no",           "Rana Blad"),       # Mo i Rana
+
+    # --- Other Amedia regionals ---
+    ("https://www.nationen.no",           "Nationen"),        # Agriculture/rural
+    ("https://www.glomdalen.no",          "Glåmdalen"),       # Kongsvinger/Hedmark
+    ("https://www.ostlendingen.no",       "Østlendingen"),    # Elverum/Hedmark
+    ("https://www.nidaros.no",            "Nidaros"),         # Trondheim online
+    ("https://www.steinkjer-avisa.no",    "Steinkjer-Avisa"), # Nord-Trøndelag
 ]
 
 # Canonical publisher names for each domain we ingest directly
@@ -133,6 +149,17 @@ DOMAIN_TO_NAME = {
     "namdalsavisa.no":     "Namdalsavisa",
     "oa.no":               "Oppland Arbeiderblad",
     "gd.no":               "Gudbrandsdølen Dagningen",
+    # Newly added Amedia papers
+    "nettavisen.no":       "Nettavisen",
+    "nordlys.no":          "Nordlys",
+    "t-a.no":              "Trønder-Avisa",
+    "h-a.no":              "Hamar Arbeiderblad",
+    "ranablad.no":         "Rana Blad",
+    "nationen.no":         "Nationen",
+    "glomdalen.no":        "Glåmdalen",
+    "ostlendingen.no":     "Østlendingen",
+    "nidaros.no":          "Nidaros",
+    "steinkjer-avisa.no":  "Steinkjer-Avisa",
 }
 
 # Search URL templates for Google News articles.
@@ -197,12 +224,17 @@ SKIP_URL_PATTERNS = [
     "/tv/n/",            # Polaris Media video path pattern
     "/video/",           # Generic video path
     "playlistId=",       # Schibsted video/audio story pages (aftenbladet, bt, fvn, etc.)
+    "google.com/search", # Google Search fallback URLs — not articles
+    "google.com/sorry",  # Google rate-limit page
+    "/sok/?q=",          # Publisher search pages (fvn, adressa, etc.) — not articles
+    "/search?q=",        # Generic publisher search pages
 ]
 
 SPACY_MODEL = "nb_core_news_lg"
 SBERT_MODEL = "NbAiLab/nb-sbert-base"
 SENTIMENT_MODEL = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
 
-NER_LABELS = {"PER", "ORG", "GPE", "LOC", "EVENT"}
+# nb_core_news_lg uses GPE_LOC/GPE_ORG (not GPE) and EVT (not EVENT)
+NER_LABELS = {"PER", "ORG", "GPE_LOC", "GPE_ORG", "LOC", "EVT"}
 NLP_TEXT_LIMIT = 5000
 EMBEDDING_TEXT_LIMIT = 500

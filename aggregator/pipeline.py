@@ -3,7 +3,7 @@ import logging
 from .discovery import discover_all
 from .extraction import fetch_article
 from .nlp import deduplicate, process_articles
-from .storage import article_exists, save_article
+from .storage import article_exists, get_unenriched_articles, save_article
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ def run_pipeline() -> None:
     discovered = discover_all()
 
     new_items = [item for item in discovered if not article_exists(item["url"])]
-    logger.info(f"{len(new_items)} new URLs to process (skipping {len(discovered) - len(new_items)} known)")
+    logger.info(f"{len(new_items)} new URLs to process (skipping {len(discovered) - len(new_items)} already in DB)")
 
     # Step 1: fetch all articles
     raw_articles: list[dict] = []
@@ -39,3 +39,32 @@ def run_pipeline() -> None:
             logger.error(f"Failed to save {article.get('url')}: {e}")
 
     logger.info("Pipeline complete")
+
+
+def run_backfill(batch_size: int = 100) -> None:
+    """Re-enrich articles in the DB that are missing sentiment/entities/topic.
+
+    Uses stored body — no HTTP fetching, so it never hits rate limits or
+    search-page URLs that were saved as link_url fallbacks.
+    """
+    logger.info("Backfill started")
+
+    total_done = 0
+    while True:
+        items = get_unenriched_articles(batch_size)
+        if not items:
+            break
+
+        logger.info(f"Backfill batch: {len(items)} articles to re-enrich from DB body")
+
+        processed = process_articles(items)
+        for article in processed:
+            try:
+                save_article(article)
+            except Exception as e:
+                logger.error(f"Backfill failed to save {article.get('url')}: {e}")
+
+        total_done += len(processed)
+        logger.info(f"Backfill progress: {total_done} articles enriched so far")
+
+    logger.info(f"Backfill complete — {total_done} articles enriched")

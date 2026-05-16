@@ -7,7 +7,7 @@ logging.basicConfig(
 )
 
 import argparse
-from aggregator.pipeline import run_pipeline
+from aggregator.pipeline import run_backfill, run_pipeline
 from aggregator.scheduler import start as start_scheduler
 
 
@@ -24,12 +24,19 @@ def main() -> None:
         action="store_true",
         help="Start the web UI (http://localhost:8000)",
     )
+    group.add_argument(
+        "--backfill",
+        action="store_true",
+        help="Re-enrich existing articles missing sentiment/entities/topic",
+    )
     parser.add_argument("--host", default="127.0.0.1", help="Host for --serve (default: 127.0.0.1)")
     parser.add_argument("--port", type=int, default=8000, help="Port for --serve (default: 8000)")
     args = parser.parse_args()
 
     if args.once:
         run_pipeline()
+    elif args.backfill:
+        run_backfill()
     elif args.serve:
         import uvicorn
         from aggregator.api import app

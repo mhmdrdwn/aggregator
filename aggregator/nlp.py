@@ -125,10 +125,13 @@ def classify_topic(title: str, text: str, embedding: list[float]) -> str:
     return names[int(sims.argmax())]
 
 
+_LABEL_NORM = {"GPE_LOC": "GPE", "GPE_ORG": "GPE", "EVT": "EVENT"}
+
+
 def _ner(text: str) -> list[dict]:
     doc = _spacy_model()(text[:NLP_TEXT_LIMIT])
     return [
-        {"text": ent.text, "label": ent.label_}
+        {"text": ent.text, "label": _LABEL_NORM.get(ent.label_, ent.label_)}
         for ent in doc.ents
         if ent.label_ in NER_LABELS
     ]

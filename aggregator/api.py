@@ -29,6 +29,7 @@ def list_articles(
     date_from: str = Query(""),
     date_to: str = Query(""),
     topic: str = Query(""),
+    author: str = Query(""),
 ):
     offset = (page - 1) * limit
 
@@ -50,6 +51,9 @@ def list_articles(
     if topic:
         where_clauses.append("topic = %s")
         params.append(topic)
+    if author:
+        where_clauses.append("author = %s")
+        params.append(author)
 
     where_sql = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
 
@@ -360,3 +364,63 @@ def coverage(days: int = Query(14, ge=1, le=90)):
     ]
 
     return {"dates": date_range, "series": series}
+
+
+@app.get("/api/authors")
+def list_authors(
+    limit: int = Query(50, ge=1, le=200),
+    source: str = Query(""),
+    topic: str = Query(""),
+    days: int = Query(7, ge=1, le=90),
+):
+    # Exclude wire services and editorial robots that are not individual journalists
+    _NOISE = {"NTB", "N NTB", "NTB-Reuters", "Redaksjonen", "VG CNP-Live",
+              "BTs bedriftsrobot", "BTs boligrobot", "ANB", "ANB-NTB"}
+
+    where = [
+        "author IS NOT NULL", "author != ''",
+        f"published_at >= NOW() - INTERVAL '1 day' * {days}",
+    ]
+    params: list = []
+    if source:
+        where.append("source = %s")
+        params.append(source)
+    if topic:
+        where.append("topic = %s")
+        params.append(topic)
+
+    where_sql = "WHERE " + " AND ".join(where)
+
+    conn = psycopg2.connect(DATABASE_URL)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT author, source, COUNT(*) AS cnt
+                FROM articles
+                {where_sql}
+                GROUP BY author, source
+                ORDER BY cnt DESC
+                LIMIT %s
+                """,
+                params + [limit * 3],  # fetch extra to absorb noise filtering
+            )
+            rows = cur.fetchall()
+    finally:
+        conn.close()
+
+    # Aggregate per author across sources, skip noise
+    from collections import defaultdict
+    by_author: dict[str, dict] = defaultdict(lambda: {"count": 0, "sources": set()})
+    for author, source_, cnt in rows:
+        if author in _NOISE:
+            continue
+        by_author[author]["count"] += cnt
+        if source_:
+            by_author[author]["sources"].add(source_)
+
+    result = sorted(by_author.items(), key=lambda x: -x[1]["count"])[:limit]
+    return [
+        {"author": a, "count": d["count"], "sources": sorted(d["sources"])}
+        for a, d in result
+    ]

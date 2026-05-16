@@ -402,6 +402,7 @@
       <button class="main-tab" data-panel="sources">Kilder</button>
       <button class="main-tab" data-panel="places">Steder</button>
       <button class="main-tab" data-panel="coverage">Dekning</button>
+      <button class="main-tab" data-panel="authors">Journalister</button>
     </div>
     <div class="main-panel open" id="panel-trends">
       <div class="label-filters" id="label-filters">
@@ -424,6 +425,9 @@
     </div>
     <div class="main-panel" id="panel-coverage">
       <div id="coverage-chart"></div>
+    </div>
+    <div class="main-panel" id="panel-authors">
+      <div id="authors-chart"></div>
     </div>
   </div>
 </section>
@@ -468,6 +472,7 @@
   let activeLabel  = '';
   let activeSource = '';
   let activeTopic  = '';
+  let activeAuthor = '';
   let searchTimer;
 
   // ── label colors (fill, stroke, text) ────────────────────────────────────
@@ -779,6 +784,43 @@
     container.appendChild(note);
   }
 
+  // ── authors ───────────────────────────────────────────────────────────────
+
+  const AUTHOR_COLOR        = { fill: '#fef3c7', stroke: '#d97706', text: '#78350f' };
+  const AUTHOR_COLOR_ACTIVE = { fill: '#d97706', stroke: '#d97706', text: '#fff'    };
+
+  async function loadAuthorsChart() {
+    const params = new URLSearchParams({ source: activeSource, topic: activeTopic, days: 7, limit: 50 });
+    const data = await fetch(`/api/authors?${params}`).then(r => r.json());
+    const items = data.map(({ author, count, sources }) => ({
+      text: author, count, sources,
+    }));
+
+    // Override tooltip for authors to include source info
+    const container = document.getElementById('authors-chart');
+    drawTreemap(items, 'authors-chart', 260,
+      d => d.text === activeAuthor ? AUTHOR_COLOR_ACTIVE : AUTHOR_COLOR,
+      d => {
+        activeAuthor = activeAuthor === d.text ? '' : d.text;
+        currentPage = 1; loadArticles(); loadAuthorsChart();
+        tooltip.style.opacity = 0;
+      }
+    );
+
+    // Patch tooltips to show source
+    container.querySelectorAll('g').forEach((g, i) => {
+      if (!items[i]) return;
+      const { text, count, sources } = items[i];
+      const srcLabel = sources.slice(0, 2).join(', ') + (sources.length > 2 ? ` +${sources.length - 2}` : '');
+      g.addEventListener('mousemove', ev => {
+        tooltip.textContent = `${text}  ·  ${count} art.  ·  ${srcLabel}`;
+        tooltip.style.opacity = 1;
+        tooltip.style.left = (ev.clientX + 12) + 'px';
+        tooltip.style.top  = (ev.clientY - 28) + 'px';
+      });
+    });
+  }
+
   // Redraw active chart on resize
   let resizeTimer;
   new ResizeObserver(() => {
@@ -791,6 +833,7 @@
       else if (p === 'topics') loadTopicsChart();
       else if (p === 'sources') loadSourcesChart();
       else if (p === 'places') loadPlacesChart();
+      else if (p === 'authors') loadAuthorsChart();
       // coverage is an HTML table — no pixel redraw needed on resize
     }, 150);
   }).observe(document.querySelector('.entities-inner'));
@@ -811,6 +854,7 @@
     else if (tab.dataset.panel === 'sources') loadSourcesChart();
     else if (tab.dataset.panel === 'places') loadPlacesChart();
     else if (tab.dataset.panel === 'coverage') loadCoverageChart();
+    else if (tab.dataset.panel === 'authors')  loadAuthorsChart();
   });
 
   // ── label filter buttons ──────────────────────────────────────────────────
@@ -1054,6 +1098,7 @@
       limit: 20,
       source: activeSource,
       topic: activeTopic,
+      author: activeAuthor,
       q: searchEl.value.trim(),
       date_from: dateFromEl.value,
       date_to: dateToEl.value,
@@ -1113,6 +1158,7 @@
 
   searchEl.addEventListener('input', () => {
     clearTimeout(searchTimer);
+    activeAuthor = '';
     searchTimer = setTimeout(() => { currentPage = 1; loadArticles(); }, 400);
   });
 

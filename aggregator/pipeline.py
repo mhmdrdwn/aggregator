@@ -1,9 +1,11 @@
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .discovery import discover_all
-from .extraction import fetch_article
+from .extraction import fetch_article, _parse
 from .nlp import deduplicate, process_articles
-from .storage import article_exists, get_unenriched_articles, save_article
+from .storage import article_exists, get_articles_without_images, get_unenriched_articles, save_article, set_image_url
+from .config import SKIP_URL_PATTERNS
 
 logger = logging.getLogger(__name__)
 
@@ -68,3 +70,44 @@ def run_backfill(batch_size: int = 100) -> None:
         logger.info(f"Backfill progress: {total_done} articles enriched so far")
 
     logger.info(f"Backfill complete — {total_done} articles enriched")
+
+
+def _fetch_image(url: str) -> tuple[str, str]:
+    """Fetch a single article URL and return (url, image_url_or_empty)."""
+    if any(pat in url for pat in SKIP_URL_PATTERNS):
+        return url, ""
+    try:
+        import trafilatura
+        html = trafilatura.fetch_url(url)
+        if html:
+            data = _parse(html, url)
+            if data and data.get("image"):
+                return url, data["image"]
+    except Exception as e:
+        logger.warning(f"Image backfill failed for {url}: {e}")
+    return url, ""
+
+
+def run_image_backfill(workers: int = 6, batch_size: int = 200) -> None:
+    """Fetch og:image for articles that don't have one yet."""
+    logger.info("Image backfill started")
+    total_processed = 0
+    total_found = 0
+
+    while True:
+        urls = get_articles_without_images(batch_size)
+        if not urls:
+            break
+
+        logger.info(f"Image backfill: {len(urls)} articles to check")
+
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = {pool.submit(_fetch_image, url): url for url in urls}
+            for future in as_completed(futures):
+                url, image_url = future.result()
+                set_image_url(url, image_url)
+                total_processed += 1
+                if image_url:
+                    total_found += 1
+
+        logger.info(f"Image backfill progress: {total_processed} processed, {total_found} found")

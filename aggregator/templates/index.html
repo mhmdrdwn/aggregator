@@ -10,14 +10,15 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --red:    #c8102e;
-      --ink:    #111111;
-      --muted:  #737373;
-      --light:  #e5e5e5;
-      --bg:     #f5f4f0;
-      --white:  #ffffff;
-      --sans:   'Inter', -apple-system, sans-serif;
-      --serif:  'Playfair Display', Georgia, serif;
+      --red:   #c8102e;
+      --ink:   #111111;
+      --muted: #6b7280;
+      --line:  #e5e7eb;
+      --bg:    #f9f9f7;
+      --white: #ffffff;
+      --sans:  'Inter', -apple-system, sans-serif;
+      --serif: 'Playfair Display', Georgia, serif;
+      --radius: 8px;
     }
 
     body {
@@ -31,153 +32,166 @@
 
     header {
       background: var(--white);
-      border-bottom: 3px solid var(--ink);
+      border-bottom: 1px solid var(--line);
       position: sticky;
       top: 0;
       z-index: 10;
     }
-    .header-brand {
-      max-width: 1400px;
+    .header-inner {
+      max-width: 1100px;
       margin: 0 auto;
-      padding: 1rem 2rem;
+      padding: 1rem 1.5rem;
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 1rem;
     }
-    .header-flag { font-size: 1.4rem; line-height: 1; }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex: 1;
+    }
+    .header-flag { font-size: 1.25rem; line-height: 1; }
     header h1 {
       font-family: var(--serif);
-      font-size: 1.5rem;
+      font-size: 1.35rem;
       font-weight: 700;
-      letter-spacing: -0.01em;
       color: var(--ink);
     }
-    .header-rule {
-      width: 1px;
-      background: var(--light);
-      margin: 0.6rem 1.5rem;
-    }
-    #last-updated {
-      font-size: 0.75rem;
-      color: var(--muted);
-      align-self: center;
-    }
-
-    /* ── Toolbar ─────────────────────────────────────────────────────────── */
-
-    .toolbar {
-      background: var(--white);
-      border-bottom: 1px solid var(--light);
-    }
-    .toolbar-inner {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0.75rem 2rem;
-      display: flex;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .search-box,
-    .source-filter,
-    .date-input {
-      padding: 0.45rem 0.75rem;
-      border: 1px solid var(--light);
-      border-radius: 4px;
-      font-family: var(--sans);
-      font-size: 0.85rem;
-      color: var(--ink);
-      background: var(--white);
-      transition: border-color 0.15s;
-    }
-    .search-box { flex: 1; min-width: 200px; }
-    .search-box:focus,
-    .source-filter:focus,
-    .date-input:focus { outline: none; border-color: var(--ink); }
-
-    .date-label {
-      font-size: 0.75rem;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    .stats {
+    #article-count {
       font-size: 0.78rem;
       color: var(--muted);
-      margin-left: auto;
       white-space: nowrap;
     }
 
-    /* ── Trends section ──────────────────────────────────────────────────── */
+    /* ── Search bar ──────────────────────────────────────────────────────── */
 
-    .entities-section {
+    .search-bar {
       background: var(--white);
-      border-bottom: 1px solid var(--light);
+      border-bottom: 1px solid var(--line);
     }
-    .entities-inner {
-      max-width: 1400px;
+    .search-inner {
+      max-width: 1100px;
       margin: 0 auto;
-      padding: 0 2rem 0.75rem;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.55rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      font-family: var(--sans);
+      font-size: 0.88rem;
+      color: var(--ink);
+      background: var(--bg);
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--ink);
+      background: var(--white);
+    }
+    .date-label { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+    .date-input {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-family: var(--sans);
+      font-size: 0.82rem;
+      color: var(--ink);
+      background: var(--white);
+    }
+    .date-input:focus { outline: none; border-color: var(--ink); }
+    .active-filter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.3rem 0.7rem;
+      background: var(--ink);
+      color: var(--white);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .active-filter-pill:hover { background: #333; }
+
+    /* ── Explore panel ───────────────────────────────────────────────────── */
+
+    .explore-section {
+      background: var(--white);
+      border-bottom: 1px solid var(--line);
+    }
+    .explore-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem 1rem;
     }
 
-    .main-tabs {
+    .tabs {
       display: flex;
-      border-bottom: 2px solid var(--light);
+      gap: 0;
+      border-bottom: 1px solid var(--line);
       margin-bottom: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
     }
-    .main-tab {
-      padding: 0.65rem 1.1rem;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
+    .tabs::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      padding: 0.75rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 500;
       border: none;
       border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
+      margin-bottom: -1px;
       background: none;
       color: var(--muted);
       cursor: pointer;
+      white-space: nowrap;
       transition: color 0.12s, border-color 0.12s;
     }
-    .main-tab:hover { color: var(--ink); }
-    .main-tab.open { color: var(--ink); border-bottom-color: var(--red); }
+    .tab-btn:hover { color: var(--ink); }
+    .tab-btn.open { color: var(--ink); border-bottom-color: var(--red); font-weight: 600; }
 
-    .main-panel { display: none; padding: 0.7rem 0 0.4rem; }
-    .main-panel.open { display: block; }
+    .tab-panel { display: none; padding: 0.85rem 0 0.5rem; }
+    .tab-panel.open { display: block; }
 
-    .label-filters { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
-
+    .label-filters {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
     .label-btn {
-      padding: 0.2rem 0.6rem;
-      border-radius: 2px;
-      font-size: 0.72rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
       font-weight: 500;
-      border: 1px solid var(--light);
+      border: 1px solid var(--line);
       cursor: pointer;
-      transition: all 0.12s;
       background: var(--white);
       color: var(--muted);
+      transition: all 0.12s;
     }
     .label-btn:hover { border-color: var(--ink); color: var(--ink); }
-    .label-btn.active                      { background: var(--ink);  color: var(--white); border-color: var(--ink); }
-    .label-btn[data-label="PER"].active    { background: #1d4ed8; border-color: #1d4ed8; }
-    .label-btn[data-label="ORG"].active    { background: #065f46; border-color: #065f46; }
-    .label-btn[data-label="GPE"].active    { background: #92400e; border-color: #92400e; }
-    .label-btn[data-label="EVENT"].active  { background: #5b21b6; border-color: #5b21b6; }
+    .label-btn.active { background: var(--ink); color: var(--white); border-color: var(--ink); }
 
-    #bubble-chart, #topics-chart, #sources-chart, #places-chart {
-      width: 100%; overflow: hidden; transition: height 0.25s ease;
-    }
-    #bubble-chart svg, #topics-chart svg, #sources-chart svg, #places-chart svg { display: block; }
+    #bubble-chart, #topics-chart, #sources-chart, #places-chart,
+    #authors-chart { width: 100%; overflow: hidden; }
 
-    .bubble-tooltip {
+    .tooltip {
       position: fixed;
       background: var(--ink);
       color: var(--white);
       font-size: 0.75rem;
-      padding: 0.3rem 0.65rem;
-      border-radius: 3px;
+      padding: 0.35rem 0.7rem;
+      border-radius: 6px;
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.1s;
@@ -189,183 +203,181 @@
 
     .analytics-section {
       background: var(--white);
-      border-bottom: 1px solid var(--light);
+      border-bottom: 1px solid var(--line);
     }
     .analytics-inner {
-      max-width: 1400px;
+      max-width: 1100px;
       margin: 0 auto;
-      padding: 0.7rem 2rem 0.55rem;
+      padding: 1rem 1.5rem 0.75rem;
       display: grid;
       grid-template-columns: 1fr 2fr;
-      gap: 2rem;
+      gap: 2.5rem;
       align-items: start;
     }
-    .analytics-label {
-      font-size: 0.65rem;
+    .analytics-heading {
+      font-size: 0.72rem;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       color: var(--muted);
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.5rem;
       display: flex;
       align-items: center;
-      gap: 0.7rem;
+      gap: 0.75rem;
     }
     .sent-legend {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.6rem;
       font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
     }
     .legend-dot {
       display: inline-block;
       width: 7px; height: 7px;
       border-radius: 50%;
-      margin-right: 0.2rem;
     }
     .legend-dot.positive { background: #4ade80; }
     .legend-dot.neutral  { background: #d1d5db; }
     .legend-dot.negative { background: #f87171; }
     #sentiment-chart, #sov-chart { width: 100%; }
 
-    /* ── Coverage heatmap ────────────────────────────────────────────────── */
-    .coverage-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
-    .coverage-table th { font-weight: 600; text-align: center; padding: 4px 6px; color: var(--muted); font-size: 0.7rem; }
-    .coverage-table td { padding: 2px 3px; }
-    .coverage-table .src-label { text-align: right; padding-right: 8px; white-space: nowrap; color: var(--ink); font-weight: 500; cursor: pointer; }
-    .coverage-table .src-label:hover { color: var(--red); }
-    .cov-cell { width: 28px; height: 22px; border-radius: 3px; text-align: center; line-height: 22px; font-size: 0.68rem; font-weight: 600; }
-
     /* ── Article grid ────────────────────────────────────────────────────── */
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 1px;
-      padding: 2rem;
-      max-width: 1400px;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+      padding: 1.5rem;
+      max-width: 1100px;
       margin: 0 auto;
     }
 
     .card {
       background: var(--white);
-      border: 1px solid var(--light);
-      padding: 1.4rem 1.5rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem 1rem;
       display: flex;
       flex-direction: column;
-      gap: 0.65rem;
+      gap: 0.6rem;
       text-decoration: none;
       color: inherit;
-      transition: border-color 0.15s;
-      position: relative;
+      transition: box-shadow 0.15s, border-color 0.15s;
+      overflow: hidden;
     }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0;
-      width: 3px;
-      height: 100%;
-      background: transparent;
-      transition: background 0.15s;
+    .card:hover {
+      border-color: #c0c0c0;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
     }
-    .card:hover { border-color: #aaa; }
-    .card:hover::before { background: var(--red); }
+    .card-img {
+      width: calc(100% + 3rem);
+      margin: -1.25rem -1.5rem 0.5rem;
+      height: 160px;
+      object-fit: cover;
+      border-radius: var(--radius) var(--radius) 0 0;
+      display: block;
+    }
 
     .card-source {
-      font-size: 0.68rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
       display: flex;
       align-items: center;
-      gap: 0.4rem;
-      flex-wrap: wrap;
-    }
-
-    .badge {
-      font-size: 0.62rem;
-      font-weight: 500;
-      padding: 0.1rem 0.4rem;
-      border-radius: 2px;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
+      color: var(--muted);
     }
-    .badge-topic    { background: #f0f0f0; color: #555; }
-    .sentiment-positive { background: #d1fae5; color: #065f46; }
-    .sentiment-negative { background: #fee2e2; color: #991b1b; }
-    .sentiment-neutral  { background: #f3f4f6; color: #737373; }
+    .sentiment-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .sentiment-dot.positive { background: #22c55e; }
+    .sentiment-dot.negative { background: #ef4444; }
+    .sentiment-dot.neutral  { background: #d1d5db; }
+
+    .topic-chip {
+      margin-left: auto;
+      font-size: 0.65rem;
+      font-weight: 500;
+      padding: 0.1rem 0.5rem;
+      border-radius: 20px;
+      background: #f3f4f6;
+      color: #6b7280;
+      text-transform: none;
+      letter-spacing: 0;
+    }
 
     .card-title {
       font-family: var(--serif);
       font-size: 1.05rem;
       font-weight: 700;
-      line-height: 1.35;
+      line-height: 1.4;
       color: var(--ink);
     }
+    .card:hover .card-title { color: var(--red); }
 
     .card-snippet {
-      font-size: 0.83rem;
-      color: #525252;
-      line-height: 1.6;
+      font-size: 0.85rem;
+      color: #4b5563;
+      line-height: 1.65;
       flex: 1;
     }
 
-    .card-meta {
+    .card-footer {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       font-size: 0.72rem;
       color: var(--muted);
-      padding-top: 0.5rem;
-      border-top: 1px solid #f0f0f0;
+      padding-top: 0.6rem;
+      border-top: 1px solid #f3f4f6;
+      gap: 0.5rem;
     }
-
-    .tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
-    .tag {
-      font-size: 0.65rem;
-      padding: 0.12rem 0.4rem;
-      border-radius: 2px;
-      font-weight: 500;
-    }
-    .tag-PER   { background: #dbeafe; color: #1d4ed8; }
-    .tag-ORG   { background: #d1fae5; color: #065f46; }
-    .tag-GPE,
-    .tag-LOC   { background: #fef3c7; color: #92400e; }
-    .tag-EVENT { background: #ede9fe; color: #5b21b6; }
+    .card-author { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .card-date { white-space: nowrap; }
 
     .pagination {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 0.5rem;
-      padding: 1.5rem 2rem 2.5rem;
+      gap: 0.4rem;
+      padding: 1.5rem 1.5rem 3rem;
     }
     .page-btn {
-      padding: 0.45rem 0.85rem;
-      border: 1px solid #d0d3da;
+      min-width: 36px;
+      height: 36px;
+      padding: 0 0.6rem;
+      border: 1px solid var(--line);
       border-radius: 6px;
-      background: #fff;
+      background: var(--white);
       cursor: pointer;
       font-size: 0.85rem;
-      transition: background 0.1s;
+      font-family: var(--sans);
+      color: var(--ink);
+      transition: all 0.12s;
     }
-    .page-btn:hover:not(:disabled) { background: var(--bg); border-color: var(--ink); }
-    .page-btn:disabled { opacity: 0.4; cursor: default; }
+    .page-btn:hover:not(:disabled) { border-color: var(--ink); }
+    .page-btn:disabled { opacity: 0.35; cursor: default; }
     .page-btn.active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+    .pagination span { color: var(--muted); font-size: 0.85rem; }
 
     .empty {
       grid-column: 1 / -1;
       text-align: center;
       padding: 4rem 2rem;
-      color: #9ca3af;
+      color: var(--muted);
       font-size: 1rem;
     }
 
     .skeleton {
-      background: linear-gradient(90deg, #f0f2f5 25%, #e8eaed 50%, #f0f2f5 75%);
+      background: linear-gradient(90deg, #f3f4f6 25%, #e9eaec 50%, #f3f4f6 75%);
       background-size: 400% 100%;
       animation: shimmer 1.2s infinite;
-      border-radius: 6px;
+      border-radius: 4px;
       height: 1em;
     }
     @keyframes shimmer { to { background-position: -400% 0; } }
@@ -375,36 +387,37 @@
 <body>
 
 <header>
-  <div class="header-brand">
-    <span class="header-flag">🇳🇴</span>
-    <h1>Norske Nyheter</h1>
-    <div class="header-rule"></div>
-    <span id="last-updated"></span>
+  <div class="header-inner">
+    <div class="header-brand">
+      <span class="header-flag">🇳🇴</span>
+      <h1>Norske Nyheter</h1>
+    </div>
+    <span id="article-count"></span>
   </div>
 </header>
 
-<div class="toolbar">
-  <div class="toolbar-inner">
-    <input class="search-box" id="search" type="search" placeholder="Søk i tittel eller innhold…" />
+<div class="search-bar">
+  <div class="search-inner">
+    <input class="search-input" id="search" type="search" placeholder="Søk i nyheter…" />
     <span class="date-label">Fra</span>
     <input class="date-input" id="date-from" type="date" />
     <span class="date-label">Til</span>
     <input class="date-input" id="date-to" type="date" />
-    <span class="stats" id="stats"></span>
+    <span id="active-filter-wrap"></span>
   </div>
 </div>
 
-<section class="entities-section">
-  <div class="entities-inner">
-    <div class="main-tabs" id="main-tabs">
-      <button class="main-tab open" data-panel="trends">Trender</button>
-      <button class="main-tab" data-panel="topics">Emner</button>
-      <button class="main-tab" data-panel="sources">Kilder</button>
-      <button class="main-tab" data-panel="places">Steder</button>
-      <button class="main-tab" data-panel="coverage">Dekning</button>
-      <button class="main-tab" data-panel="authors">Journalister</button>
+<section class="explore-section">
+  <div class="explore-inner">
+    <div class="tabs" id="main-tabs">
+      <button class="tab-btn open" data-panel="trends">Trender</button>
+      <button class="tab-btn" data-panel="topics">Emner</button>
+      <button class="tab-btn" data-panel="sources">Kilder</button>
+      <button class="tab-btn" data-panel="places">Steder</button>
+      <button class="tab-btn" data-panel="authors">Journalister</button>
     </div>
-    <div class="main-panel open" id="panel-trends">
+
+    <div class="tab-panel open" id="panel-trends">
       <div class="label-filters" id="label-filters">
         <button class="label-btn active" data-label="">Alle</button>
         <button class="label-btn" data-label="PER">Personer</button>
@@ -414,41 +427,30 @@
       </div>
       <div id="bubble-chart"></div>
     </div>
-    <div class="main-panel" id="panel-topics">
-      <div id="topics-chart"></div>
-    </div>
-    <div class="main-panel" id="panel-sources">
-      <div id="sources-chart"></div>
-    </div>
-    <div class="main-panel" id="panel-places">
-      <div id="places-chart"></div>
-    </div>
-    <div class="main-panel" id="panel-coverage">
-      <div id="coverage-chart"></div>
-    </div>
-    <div class="main-panel" id="panel-authors">
-      <div id="authors-chart"></div>
-    </div>
+    <div class="tab-panel" id="panel-topics"><div id="topics-chart"></div></div>
+    <div class="tab-panel" id="panel-sources"><div id="sources-chart"></div></div>
+    <div class="tab-panel" id="panel-places"><div id="places-chart"></div></div>
+    <div class="tab-panel" id="panel-authors"><div id="authors-chart"></div></div>
   </div>
 </section>
 
-<div class="bubble-tooltip" id="bubble-tooltip"></div>
+<div class="tooltip" id="tooltip"></div>
 
 <div class="analytics-section">
   <div class="analytics-inner">
-    <div class="analytics-panel">
-      <div class="analytics-label">
-        Sentiment · siste uke
+    <div>
+      <div class="analytics-heading">
+        Stemning siste uke
         <span class="sent-legend">
-          <span class="legend-dot positive"></span>Pos
-          <span class="legend-dot neutral"></span>Nøy
-          <span class="legend-dot negative"></span>Neg
+          <span class="legend-dot positive"></span>Positiv
+          <span class="legend-dot neutral"></span>Nøytral
+          <span class="legend-dot negative"></span>Negativ
         </span>
       </div>
       <div id="sentiment-chart"></div>
     </div>
-    <div class="analytics-panel">
-      <div class="analytics-label">Entitetsutvikling · siste uke</div>
+    <div>
+      <div class="analytics-heading">Hvem er i nyhetene?</div>
       <div id="sov-chart"></div>
     </div>
   </div>
@@ -464,63 +466,28 @@
   const searchEl   = document.getElementById('search');
   const dateFromEl = document.getElementById('date-from');
   const dateToEl   = document.getElementById('date-to');
-  const statsEl    = document.getElementById('stats');
-  const updatedEl  = document.getElementById('last-updated');
-  const tooltip    = document.getElementById('bubble-tooltip');
+  const countEl    = document.getElementById('article-count');
+  const filterWrap = document.getElementById('active-filter-wrap');
+  const tooltip    = document.getElementById('tooltip');
 
   let currentPage  = 1;
   let activeLabel  = '';
-  let activeSource = '';
-  let activeTopic  = '';
-  let activeAuthor = '';
+  let activeSource = new Set();
+  let activeTopic  = new Set();
+  let activeAuthor = new Set();
+  let activeEntity = new Set();
   let searchTimer;
 
-  // ── label colors (fill, stroke, text) ────────────────────────────────────
-  const COLORS = {
-    PER:   { fill: '#bfdbfe', stroke: '#3b82f6', text: '#1e3a8a' },
-    ORG:   { fill: '#a7f3d0', stroke: '#10b981', text: '#064e3b' },
-    GPE:   { fill: '#fde68a', stroke: '#f59e0b', text: '#78350f' },
-    LOC:   { fill: '#fde68a', stroke: '#f59e0b', text: '#78350f' },
-    EVENT: { fill: '#ddd6fe', stroke: '#8b5cf6', text: '#3b0764' },
+  // ── colors ────────────────────────────────────────────────────────────────
+
+  const ENTITY_COLORS = {
+    PER:   { fill: '#dbeafe', stroke: '#3b82f6', text: '#1e3a8a' },
+    ORG:   { fill: '#d1fae5', stroke: '#10b981', text: '#064e3b' },
+    GPE:   { fill: '#fef3c7', stroke: '#f59e0b', text: '#78350f' },
+    LOC:   { fill: '#fef3c7', stroke: '#f59e0b', text: '#78350f' },
+    EVENT: { fill: '#ede9fe', stroke: '#8b5cf6', text: '#3b0764' },
   };
-  function col(label) { return COLORS[label] || COLORS.PER; }
-
-  // ── helpers ───────────────────────────────────────────────────────────────
-
-  function fmt(iso) {
-    if (!iso) return '—';
-    const d = new Date(iso);
-    return d.toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-  }
-
-  function tagHtml(entities) {
-    const seen = new Set();
-    return (entities || [])
-      .filter(e => { if (seen.has(e.text)) return false; seen.add(e.text); return true; })
-      .slice(0, 5)
-      .map(e => `<span class="tag tag-${e.label}">${e.text}</span>`)
-      .join('');
-  }
-
-  function renderSkeletons() {
-    grid.innerHTML = Array(6).fill(`
-      <div class="card" style="pointer-events:none">
-        <div class="skeleton" style="width:30%;height:.7em"></div>
-        <div class="skeleton" style="width:90%;height:1.1em;margin-top:.3rem"></div>
-        <div class="skeleton" style="width:75%;height:1.1em"></div>
-        <div class="skeleton" style="width:100%;height:3.5em;margin-top:.4rem"></div>
-      </div>`).join('');
-    pagination.innerHTML = '';
-  }
-
-  // ── treemap (generic) ────────────────────────────────────────────────────
-
-  const TOPIC_LABELS = {
-    politikk: 'Politikk', økonomi: 'Økonomi', sport: 'Sport',
-    kriminalitet: 'Kriminalitet', helse: 'Helse', teknologi: 'Teknologi',
-    klima: 'Klima', kultur: 'Kultur', utenriks: 'Utenriks',
-    forsvar: 'Forsvar', utdanning: 'Utdanning', samfunn: 'Samfunn',
-  };
+  function col(label) { return ENTITY_COLORS[label] || ENTITY_COLORS.PER; }
 
   const TOPIC_COLORS = {
     sport:        { fill: '#dbeafe', stroke: '#3b82f6', text: '#1e3a8a' },
@@ -536,11 +503,178 @@
     utdanning:    { fill: '#fae8ff', stroke: '#a855f7', text: '#4a044e' },
     samfunn:      { fill: '#f0fdf4', stroke: '#4ade80', text: '#14532d' },
   };
-  const SOURCE_COLOR  = { fill: '#f0f2f5', stroke: '#94a3b8', text: '#1e293b' };
-  const SOURCE_ACTIVE = { fill: '#1e293b', stroke: '#0f172a', text: '#f8fafc' };
 
-  const PLACE_COLOR  = { fill: '#e0f2fe', stroke: '#38bdf8', text: '#0c4a6e' };
-  const PLACE_ACTIVE = { fill: '#0c4a6e', stroke: '#0369a1', text: '#f0f9ff' };
+  // Unified inactive/active palette for sources, places, authors
+  const ITEM_COLOR  = { fill: '#f1f5f9', stroke: '#cbd5e1', text: '#334155' };
+  const ITEM_ACTIVE = { fill: '#1e293b', stroke: '#1e293b', text: '#ffffff' };
+
+  const TOPIC_LABELS = {
+    politikk: 'Politikk', økonomi: 'Økonomi', sport: 'Sport',
+    kriminalitet: 'Kriminalitet', helse: 'Helse', teknologi: 'Teknologi',
+    klima: 'Klima', kultur: 'Kultur', utenriks: 'Utenriks',
+    forsvar: 'Forsvar', utdanning: 'Utdanning', samfunn: 'Samfunn',
+  };
+
+  // ── helpers ───────────────────────────────────────────────────────────────
+
+  function fmt(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const now = new Date();
+    const diffH = (now - d) / 3600000;
+    if (diffH < 1) return `${Math.round(diffH * 60)} min siden`;
+    if (diffH < 24) return `${Math.round(diffH)} t siden`;
+    return d.toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' });
+  }
+
+  function renderSkeletons() {
+    grid.innerHTML = Array(8).fill(`
+      <div class="card" style="pointer-events:none">
+        <div class="skeleton" style="width:28%;height:.7em"></div>
+        <div class="skeleton" style="width:85%;height:1.1em;margin-top:.5rem"></div>
+        <div class="skeleton" style="width:70%;height:1.1em;margin-top:.3rem"></div>
+        <div class="skeleton" style="width:100%;height:3em;margin-top:.5rem"></div>
+      </div>`).join('');
+    pagination.innerHTML = '';
+  }
+
+  function updateActiveFilterPill() {
+    const filters = [];
+    activeSource.forEach(v => filters.push({ key: 'source', value: v, label: v }));
+    activeTopic.forEach(v  => filters.push({ key: 'topic',  value: v, label: TOPIC_LABELS[v] || v }));
+    activeAuthor.forEach(v => filters.push({ key: 'author', value: v, label: v }));
+    activeEntity.forEach(v => filters.push({ key: 'entity', value: v, label: `"${v}"` }));
+    filterWrap.innerHTML = filters.map(f =>
+      `<span class="active-filter-pill" onclick="clearFilter(${JSON.stringify(f.key)},${JSON.stringify(f.value)})">${f.label} ×</span>`
+    ).join(' ');
+  }
+
+  window.clearFilter = function(key, value) {
+    if (key === 'source') activeSource.delete(value);
+    if (key === 'topic')  activeTopic.delete(value);
+    if (key === 'author') activeAuthor.delete(value);
+    if (key === 'entity') activeEntity.delete(value);
+    currentPage = 1;
+    updateActiveFilterPill();
+    loadArticles();
+    reloadActiveChart();
+  };
+
+  // ── treemap ───────────────────────────────────────────────────────────────
+
+  function drawTreemap(data, containerId, H, colorFn, clickFn) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+
+    if (!data.length) {
+      container.style.height = '60px';
+      container.innerHTML = '<p style="text-align:center;padding:1.5rem;color:#9ca3af;font-size:.85rem">Ingen data.</p>';
+      return;
+    }
+
+    const W = container.clientWidth || 900;
+    container.style.height = H + 'px';
+
+    const root = d3.hierarchy({ children: data })
+      .sum(d => d.count)
+      .sort((a, b) => b.value - a.value);
+
+    d3.treemap().size([W, H]).padding(3).round(true)(root);
+
+    const svg = d3.create('svg').attr('width', W).attr('height', H);
+
+    const node = svg.selectAll('g')
+      .data(root.leaves())
+      .join('g')
+      .attr('transform', d => `translate(${d.x0},${d.y0})`)
+      .style('cursor', 'pointer')
+      .on('click', (event, d) => { clickFn(d.data); tooltip.style.opacity = 0; })
+      .on('mousemove', (event, d) => {
+        tooltip.textContent = `${d.data.text}  ·  ${d.data.count.toLocaleString('nb-NO')} artikler`;
+        tooltip.style.opacity = 1;
+        tooltip.style.left = (event.clientX + 14) + 'px';
+        tooltip.style.top  = (event.clientY - 32) + 'px';
+      })
+      .on('mouseleave', () => { tooltip.style.opacity = 0; });
+
+    node.append('rect')
+      .attr('width',  d => Math.max(0, d.x1 - d.x0))
+      .attr('height', d => Math.max(0, d.y1 - d.y0))
+      .attr('rx', 5)
+      .attr('fill',         d => colorFn(d.data).fill)
+      .attr('stroke',       d => colorFn(d.data).stroke)
+      .attr('stroke-width', 1);
+
+    node.append('text')
+      .attr('x', d => (d.x1 - d.x0) / 2)
+      .attr('y', d => (d.y1 - d.y0) / 2)
+      .attr('text-anchor', 'middle')
+      .attr('dominant-baseline', 'middle')
+      .attr('fill', d => colorFn(d.data).text)
+      .style('pointer-events', 'none')
+      .style('user-select', 'none')
+      .each(function(d) {
+        const w = d.x1 - d.x0, h = d.y1 - d.y0;
+        if (w < 28 || h < 16) return;
+        const fs = Math.min(13, Math.max(9, Math.sqrt(w * h) * 0.1));
+        const maxChars = Math.floor(w / (fs * 0.58));
+        const lbl = d.data.text.length <= maxChars ? d.data.text : d.data.text.slice(0, maxChars - 1) + '…';
+        d3.select(this).style('font-size', `${fs}px`).style('font-weight', '600').text(lbl);
+      });
+
+    container.appendChild(svg.node());
+  }
+
+  // ── chart loaders ─────────────────────────────────────────────────────────
+
+  async function loadEntities() {
+    const params = new URLSearchParams({ limit: 36, source: [...activeSource].join(',') });
+    if (activeLabel) params.set('label', activeLabel);
+    const data = await fetch(`/api/entities?${params}`).then(r => r.json());
+    drawTreemap(data, 'bubble-chart', 280,
+      d => {
+        const c = col(d.label);
+        return activeEntity.has(d.text)
+          ? { fill: c.stroke, stroke: c.stroke, text: '#fff' }
+          : c;
+      },
+      d => {
+        activeEntity.has(d.text) ? activeEntity.delete(d.text) : activeEntity.add(d.text);
+        searchEl.value = '';
+        currentPage = 1;
+        updateActiveFilterPill();
+        loadArticles();
+        loadEntities();
+      }
+    );
+  }
+
+  async function loadTopicsChart() {
+    const data = await fetch('/api/topics').then(r => r.json());
+    const items = data.map(({ topic, count }) => ({ text: TOPIC_LABELS[topic] || topic, key: topic, count }));
+    drawTreemap(items, 'topics-chart', 220,
+      d => {
+        const c = TOPIC_COLORS[d.key] || ITEM_COLOR;
+        return activeTopic.has(d.key) ? { fill: c.stroke, stroke: c.stroke, text: '#fff' } : c;
+      },
+      d => {
+        activeTopic.has(d.key) ? activeTopic.delete(d.key) : activeTopic.add(d.key);
+        currentPage = 1; updateActiveFilterPill(); loadArticles(); loadTopicsChart();
+      }
+    );
+  }
+
+  async function loadSourcesChart() {
+    const data = await fetch('/api/sources').then(r => r.json());
+    const items = data.slice(0, 18).map(({ source, count }) => ({ text: source, count }));
+    drawTreemap(items, 'sources-chart', 240,
+      d => activeSource.has(d.text) ? ITEM_ACTIVE : ITEM_COLOR,
+      d => {
+        activeSource.has(d.text) ? activeSource.delete(d.text) : activeSource.add(d.text);
+        currentPage = 1; updateActiveFilterPill(); loadArticles(); loadSourcesChart();
+      }
+    );
+  }
 
   const PLACES = [
     { city: 'Bergen',         source: 'Bergens Tidende' },
@@ -584,105 +718,6 @@
     { city: 'Steinkjer',      source: 'Steinkjer-Avisa' },
   ];
 
-  function drawTreemap(data, containerId, H, colorFn, clickFn) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
-
-    if (!data.length) {
-      container.style.height = '60px';
-      container.innerHTML = '<p style="text-align:center;padding:1rem 2rem;color:#9ca3af;font-size:.85rem">Ingen data funnet.</p>';
-      return;
-    }
-
-    const W = container.clientWidth || 900;
-    container.style.height = H + 'px';
-
-    const root = d3.hierarchy({ children: data })
-      .sum(d => d.count)
-      .sort((a, b) => b.value - a.value);
-
-    d3.treemap().size([W, H]).padding(3).round(true)(root);
-
-    const svg = d3.create('svg').attr('width', W).attr('height', H);
-
-    const node = svg.selectAll('g')
-      .data(root.leaves())
-      .join('g')
-      .attr('transform', d => `translate(${d.x0},${d.y0})`)
-      .style('cursor', 'pointer')
-      .on('click', (event, d) => { clickFn(d.data); tooltip.style.opacity = 0; })
-      .on('mousemove', (event, d) => {
-        tooltip.textContent = `${d.data.text}  ·  ${d.data.count.toLocaleString('nb-NO')} artikler`;
-        tooltip.style.opacity = 1;
-        tooltip.style.left = (event.clientX + 12) + 'px';
-        tooltip.style.top  = (event.clientY - 28) + 'px';
-      })
-      .on('mouseleave', () => { tooltip.style.opacity = 0; });
-
-    node.append('rect')
-      .attr('width',  d => d.x1 - d.x0)
-      .attr('height', d => d.y1 - d.y0)
-      .attr('rx', 4)
-      .attr('fill',         d => colorFn(d.data).fill)
-      .attr('stroke',       d => colorFn(d.data).stroke)
-      .attr('stroke-width', 1.5);
-
-    node.append('text')
-      .attr('x', d => (d.x1 - d.x0) / 2)
-      .attr('y', d => (d.y1 - d.y0) / 2)
-      .attr('text-anchor', 'middle')
-      .attr('dominant-baseline', 'middle')
-      .attr('fill', d => colorFn(d.data).text)
-      .style('pointer-events', 'none')
-      .style('user-select', 'none')
-      .each(function(d) {
-        const w = d.x1 - d.x0, h = d.y1 - d.y0;
-        if (w < 24 || h < 14) return;
-        const fs = Math.min(13, Math.max(9, Math.sqrt(w * h) * 0.11));
-        const maxChars = Math.floor(w / (fs * 0.6));
-        const lbl = d.data.text.length <= maxChars ? d.data.text : d.data.text.slice(0, maxChars - 1) + '…';
-        d3.select(this).style('font-size', `${fs}px`).style('font-weight', '600').text(lbl);
-      });
-
-    container.appendChild(svg.node());
-  }
-
-  async function loadEntities() {
-    const params = new URLSearchParams({ limit: 36, source: activeSource });
-    if (activeLabel) params.set('label', activeLabel);
-    const data = await fetch(`/api/entities?${params}`).then(r => r.json());
-    drawTreemap(data, 'bubble-chart', 280, d => col(d.label), d => {
-      searchEl.value = d.text; currentPage = 1; loadArticles();
-    });
-  }
-
-  async function loadTopicsChart() {
-    const data = await fetch('/api/topics').then(r => r.json());
-    const items = data.map(({ topic, count }) => ({ text: TOPIC_LABELS[topic] || topic, key: topic, count }));
-    drawTreemap(items, 'topics-chart', 220,
-      d => {
-        const c = TOPIC_COLORS[d.key] || SOURCE_COLOR;
-        return d.key === activeTopic ? { fill: c.stroke, stroke: c.stroke, text: '#fff' } : c;
-      },
-      d => {
-        activeTopic = activeTopic === d.key ? '' : d.key;
-        currentPage = 1; loadArticles(); loadTopicsChart();
-      }
-    );
-  }
-
-  async function loadSourcesChart() {
-    const data = await fetch('/api/sources').then(r => r.json());
-    const items = data.slice(0, 15).map(({ source, count }) => ({ text: source, count }));
-    drawTreemap(items, 'sources-chart', 240,
-      d => d.text === activeSource ? SOURCE_ACTIVE : SOURCE_COLOR,
-      d => {
-        activeSource = activeSource === d.text ? '' : d.text;
-        currentPage = 1; loadArticles(); loadSourcesChart();
-      }
-    );
-  }
-
   async function loadPlacesChart() {
     const data = await fetch('/api/sources').then(r => r.json());
     const counts = Object.fromEntries(data.map(({ source, count }) => [source, count]));
@@ -691,123 +726,29 @@
       .filter(d => d.count > 0)
       .sort((a, b) => b.count - a.count);
     drawTreemap(items, 'places-chart', 240,
-      d => d.source === activeSource ? PLACE_ACTIVE : PLACE_COLOR,
+      d => activeSource.has(d.source) ? ITEM_ACTIVE : ITEM_COLOR,
       d => {
-        activeSource = activeSource === d.source ? '' : d.source;
-        currentPage = 1; loadArticles(); loadPlacesChart();
+        activeSource.has(d.source) ? activeSource.delete(d.source) : activeSource.add(d.source);
+        currentPage = 1; updateActiveFilterPill(); loadArticles(); loadPlacesChart();
       }
     );
   }
 
-  let _coverageLoading = false;
-
-  async function loadCoverageChart() {
-    if (_coverageLoading) return;
-    _coverageLoading = true;
-    const container = document.getElementById('coverage-chart');
-    if (!container.hasChildNodes())
-      container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:.5rem">Laster dekningsdata…</p>';
-
-    let data;
-    try { data = await fetch('/api/coverage?days=14').then(r => r.json()); }
-    finally { _coverageLoading = false; }
-    if (!data) return;
-    const { dates, series } = data;
-    if (!series.length) { container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:.5rem">Ingen data.</p>'; return; }
-
-    // Color scale: 0=very light gray, 1-4=light green, 5-14=medium green, 15+=dark green
-    function cellColor(n) {
-      if (n === 0)  return '#f1f5f9';
-      if (n < 5)   return '#bbf7d0';
-      if (n < 15)  return '#4ade80';
-      return '#16a34a';
-    }
-    function textColor(n) { return n >= 15 ? '#fff' : n === 0 ? '#94a3b8' : '#166534'; }
-
-    // Day labels: "lø 10", "sø 11", "ma 12", etc.
-    const DAY_NO = ['sø','ma','ti','on','to','fr','lø'];
-    function dayLabel(iso) {
-      const d = new Date(iso + 'T12:00:00');
-      return DAY_NO[d.getDay()] + ' ' + d.getDate();
-    }
-
-    const table = document.createElement('table');
-    table.className = 'coverage-table';
-
-    // Header row
-    const thead = table.createTHead();
-    const hrow = thead.insertRow();
-    const th0 = document.createElement('th');
-    th0.textContent = 'Kilde';
-    hrow.appendChild(th0);
-    dates.forEach(d => {
-      const th = document.createElement('th');
-      th.textContent = dayLabel(d);
-      hrow.appendChild(th);
-    });
-
-    // Body: one row per source, sorted by total desc
-    const tbody = table.createTBody();
-    series.forEach(({ source, daily }) => {
-      const recentZero = daily.slice(-3).some(n => n === 0);
-      const row = tbody.insertRow();
-      const label = row.insertCell();
-      label.className = 'src-label';
-      label.textContent = source;
-      if (recentZero) label.style.color = '#dc2626';
-      label.title = 'Klikk for å filtrere';
-      label.addEventListener('click', () => {
-        activeSource = activeSource === source ? '' : source;
-        currentPage = 1; loadArticles(); loadCoverageChart();
-      });
-      if (source === activeSource) label.style.fontWeight = '700';
-
-      daily.forEach(n => {
-        const cell = row.insertCell();
-        const div = document.createElement('div');
-        div.className = 'cov-cell';
-        div.style.background = cellColor(n);
-        div.style.color = textColor(n);
-        div.textContent = n > 0 ? n : '';
-        cell.appendChild(div);
-      });
-    });
-
-    container.innerHTML = '';
-    container.appendChild(table);
-
-    const total = series.length;
-    const silent = series.filter(s => s.daily.slice(-1)[0] === 0).length;
-    const note = document.createElement('p');
-    note.style.cssText = 'font-size:.72rem;color:var(--muted);margin-top:.5rem';
-    note.textContent = `${total} kilder · ${total - silent} aktive i dag · ${silent} stille`;
-    container.appendChild(note);
-  }
-
-  // ── authors ───────────────────────────────────────────────────────────────
-
-  const AUTHOR_COLOR        = { fill: '#fef3c7', stroke: '#d97706', text: '#78350f' };
-  const AUTHOR_COLOR_ACTIVE = { fill: '#d97706', stroke: '#d97706', text: '#fff'    };
-
   async function loadAuthorsChart() {
-    const params = new URLSearchParams({ source: activeSource, topic: activeTopic, days: 7, limit: 50 });
+    const params = new URLSearchParams({ source: [...activeSource].join(','), topic: [...activeTopic].join(','), days: 7, limit: 50 });
     const data = await fetch(`/api/authors?${params}`).then(r => r.json());
-    const items = data.map(({ author, count, sources }) => ({
-      text: author, count, sources,
-    }));
+    const items = data.map(({ author, count, sources }) => ({ text: author, count, sources }));
 
-    // Override tooltip for authors to include source info
-    const container = document.getElementById('authors-chart');
     drawTreemap(items, 'authors-chart', 260,
-      d => d.text === activeAuthor ? AUTHOR_COLOR_ACTIVE : AUTHOR_COLOR,
+      d => activeAuthor.has(d.text) ? ITEM_ACTIVE : ITEM_COLOR,
       d => {
-        activeAuthor = activeAuthor === d.text ? '' : d.text;
-        currentPage = 1; loadArticles(); loadAuthorsChart();
+        activeAuthor.has(d.text) ? activeAuthor.delete(d.text) : activeAuthor.add(d.text);
+        currentPage = 1; updateActiveFilterPill(); loadArticles(); loadAuthorsChart();
         tooltip.style.opacity = 0;
       }
     );
 
-    // Patch tooltips to show source
+    const container = document.getElementById('authors-chart');
     container.querySelectorAll('g').forEach((g, i) => {
       if (!items[i]) return;
       const { text, count, sources } = items[i];
@@ -815,49 +756,46 @@
       g.addEventListener('mousemove', ev => {
         tooltip.textContent = `${text}  ·  ${count} art.  ·  ${srcLabel}`;
         tooltip.style.opacity = 1;
-        tooltip.style.left = (ev.clientX + 12) + 'px';
-        tooltip.style.top  = (ev.clientY - 28) + 'px';
+        tooltip.style.left = (ev.clientX + 14) + 'px';
+        tooltip.style.top  = (ev.clientY - 32) + 'px';
       });
     });
   }
 
-  // Redraw active chart on resize
+  // ── chart panel routing ───────────────────────────────────────────────────
+
+  function reloadActiveChart() {
+    const active = document.querySelector('.tab-btn.open');
+    if (!active) return;
+    const p = active.dataset.panel;
+    if (p === 'trends') loadEntities();
+    else if (p === 'topics') loadTopicsChart();
+    else if (p === 'sources') loadSourcesChart();
+    else if (p === 'places') loadPlacesChart();
+    else if (p === 'authors') loadAuthorsChart();
+  }
+
   let resizeTimer;
   new ResizeObserver(() => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      const active = document.querySelector('.main-tab.open');
-      if (!active) return;
-      const p = active.dataset.panel;
-      if (p === 'trends') loadEntities();
-      else if (p === 'topics') loadTopicsChart();
-      else if (p === 'sources') loadSourcesChart();
-      else if (p === 'places') loadPlacesChart();
-      else if (p === 'authors') loadAuthorsChart();
-      // coverage is an HTML table — no pixel redraw needed on resize
-    }, 150);
-  }).observe(document.querySelector('.entities-inner'));
-
-  // ── main tabs ─────────────────────────────────────────────────────────────
+    resizeTimer = setTimeout(reloadActiveChart, 150);
+  }).observe(document.querySelector('.explore-inner'));
 
   document.getElementById('main-tabs').addEventListener('click', e => {
-    const tab = e.target.closest('.main-tab');
+    const tab = e.target.closest('.tab-btn');
     if (!tab) return;
     const panelId = 'panel-' + tab.dataset.panel;
     if (document.getElementById(panelId).classList.contains('open')) return;
-    document.querySelectorAll('.main-panel').forEach(p => p.classList.remove('open'));
-    document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('open'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('open'));
     document.getElementById(panelId).classList.add('open');
     tab.classList.add('open');
     if (tab.dataset.panel === 'trends') loadEntities();
     else if (tab.dataset.panel === 'topics') loadTopicsChart();
     else if (tab.dataset.panel === 'sources') loadSourcesChart();
     else if (tab.dataset.panel === 'places') loadPlacesChart();
-    else if (tab.dataset.panel === 'coverage') loadCoverageChart();
-    else if (tab.dataset.panel === 'authors')  loadAuthorsChart();
+    else if (tab.dataset.panel === 'authors') loadAuthorsChart();
   });
-
-  // ── label filter buttons ──────────────────────────────────────────────────
 
   document.getElementById('label-filters').addEventListener('click', e => {
     const btn = e.target.closest('.label-btn');
@@ -868,16 +806,10 @@
     loadEntities();
   });
 
-  // ── sentiment timeline ───────────────────────────────────────────────────
+  // ── sentiment timeline ────────────────────────────────────────────────────
 
   async function loadSentimentChart() {
-    const params = new URLSearchParams({
-      source: activeSource,
-      topic:  activeTopic,
-      q:      searchEl.value.trim(),
-      date_from: dateFromEl.value,
-      date_to:   dateToEl.value,
-    });
+    const params = new URLSearchParams({ date_from: dateFromEl.value, date_to: dateToEl.value });
     const data = await fetch(`/api/sentiment-timeline?${params}`).then(r => r.json());
     drawSentimentChart(data);
   }
@@ -891,87 +823,61 @@
     const W = container.clientWidth || 400;
     const H = 90;
     const w = W - m.left - m.right;
-    const h = H - m.top  - m.bottom;
-
+    const h = H - m.top - m.bottom;
     const COLORS = { positive: '#4ade80', neutral: '#d1d5db', negative: '#f87171' };
     const keys   = ['positive', 'neutral', 'negative'];
-
     const stacked = d3.stack().keys(keys)(data);
     const maxVal  = d3.max(stacked[stacked.length - 1], d => d[1]) || 1;
-
-    const x = d3.scaleBand()
-      .domain(data.map(d => d.date))
-      .range([0, w]).padding(0.12);
-
+    const x = d3.scaleBand().domain(data.map(d => d.date)).range([0, w]).padding(0.15);
     const y = d3.scaleLinear().domain([0, maxVal]).range([h, 0]).nice();
-
     const svg = d3.create('svg').attr('width', W).attr('height', H);
     const g   = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
 
-    // Grid lines
     g.append('g')
       .call(d3.axisLeft(y).ticks(3).tickSize(-w).tickFormat(''))
       .call(a => a.select('.domain').remove())
-      .call(a => a.selectAll('line').attr('stroke', '#f0f0f0'));
+      .call(a => a.selectAll('line').attr('stroke', '#f3f4f6'));
 
-    // Stacked bars
-    g.selectAll('g.layer')
-      .data(stacked)
-      .join('g')
-        .attr('fill', d => COLORS[d.key])
-        .selectAll('rect')
-        .data(d => d)
-        .join('rect')
-          .attr('x',      d => x(d.data.date))
-          .attr('y',      d => y(d[1]))
-          .attr('height', d => Math.max(0, y(d[0]) - y(d[1])))
-          .attr('width',  x.bandwidth())
-          .on('mousemove', (event, d) => {
-            const total = d.data.positive + d.data.neutral + d.data.negative;
-            tooltip.innerHTML =
-              `<b>${d.data.date}</b>  ${total} art.<br>` +
-              `▲ ${d.data.positive} pos · ${d.data.neutral} nøy · ${d.data.negative} neg`;
-            tooltip.style.opacity = 1;
-            tooltip.style.left = (event.clientX + 12) + 'px';
-            tooltip.style.top  = (event.clientY - 36) + 'px';
-          })
-          .on('mouseleave', () => { tooltip.style.opacity = 0; });
+    g.selectAll('g.layer').data(stacked).join('g')
+      .attr('fill', d => COLORS[d.key])
+      .selectAll('rect').data(d => d).join('rect')
+        .attr('x',      d => x(d.data.date))
+        .attr('y',      d => y(d[1]))
+        .attr('height', d => Math.max(0, y(d[0]) - y(d[1])))
+        .attr('width',  x.bandwidth())
+        .attr('rx', 1)
+        .on('mousemove', (event, d) => {
+          const total = d.data.positive + d.data.neutral + d.data.negative;
+          tooltip.innerHTML = `<b>${d.data.date}</b> · ${total} artikler`;
+          tooltip.style.opacity = 1;
+          tooltip.style.left = (event.clientX + 14) + 'px';
+          tooltip.style.top  = (event.clientY - 36) + 'px';
+        })
+        .on('mouseleave', () => { tooltip.style.opacity = 0; });
 
-    // X-axis dates
     const step = Math.ceil(data.length / 7);
-    g.append('g')
-      .attr('transform', `translate(0,${h})`)
-      .call(
-        d3.axisBottom(x)
-          .tickValues(data.filter((_, i) => i % step === 0).map(d => d.date))
-          .tickFormat(d => new Date(d).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' }))
-          .tickSize(0)
-      )
+    g.append('g').attr('transform', `translate(0,${h})`)
+      .call(d3.axisBottom(x)
+        .tickValues(data.filter((_, i) => i % step === 0).map(d => d.date))
+        .tickFormat(d => new Date(d).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' }))
+        .tickSize(0))
       .call(a => a.select('.domain').remove())
-      .selectAll('text')
-        .attr('dy', '1em')
-        .style('font-size', '10px')
-        .style('fill', '#737373');
+      .selectAll('text').attr('dy', '1em').style('font-size', '10px').style('fill', '#9ca3af');
 
-    // Y-axis
-    g.append('g')
-      .call(d3.axisLeft(y).ticks(3))
+    g.append('g').call(d3.axisLeft(y).ticks(3))
       .call(a => a.select('.domain').remove())
       .call(a => a.selectAll('line').remove())
-      .selectAll('text')
-        .style('font-size', '10px')
-        .style('fill', '#737373');
+      .selectAll('text').style('font-size', '10px').style('fill', '#9ca3af');
 
     container.appendChild(svg.node());
   }
 
-  // ── share of voice (entity timeline) ─────────────────────────────────────
+  // ── entity timeline ───────────────────────────────────────────────────────
 
   const LINE_COLORS = ['#e63946','#457b9d','#2a9d8f','#e9c46a','#f4a261','#6d6875','#264653','#b5838d'];
 
   async function loadEntityTimeline() {
-    const params = new URLSearchParams({ source: activeSource, topic: activeTopic });
-    const data = await fetch(`/api/entity-timeline?${params}`).then(r => r.json());
+    const data = await fetch('/api/entity-timeline').then(r => r.json());
     drawEntityTimeline(data);
   }
 
@@ -979,11 +885,11 @@
     const container = document.getElementById('sov-chart');
     container.innerHTML = '';
     if (!data.dates || !data.dates.length || !data.series || !data.series.length) {
-      container.innerHTML = '<p style="color:#9ca3af;font-size:.75rem;padding:.4rem 0">Ingen data</p>';
+      container.innerHTML = '<p style="color:#9ca3af;font-size:.8rem;padding:.4rem 0">Ingen data</p>';
       return;
     }
 
-    const legendW = 118;
+    const legendW = 120;
     const m = { top: 6, right: 6, bottom: 22, left: 28 };
     const W = container.clientWidth || 600;
     const H = 90;
@@ -994,18 +900,16 @@
     const maxVal = d3.max(data.series.flatMap(s => s.values)) || 1;
     const y = d3.scaleLinear().domain([0, maxVal]).range([h, 0]).nice();
 
-    const todayStr = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD
+    const todayStr = new Date().toLocaleDateString('sv-SE');
     const todayIdx = data.dates.indexOf(todayStr);
 
     const lineUpToToday = d3.line()
-      .x((v, i) => x(data.dates[i]))
-      .y(v => y(v))
+      .x((v, i) => x(data.dates[i])).y(v => y(v))
       .defined((v, i) => todayIdx < 0 || i < todayIdx)
       .curve(d3.curveMonotoneX);
 
     const lineTodaySegment = d3.line()
-      .x((v, i) => x(data.dates[i]))
-      .y(v => y(v))
+      .x((v, i) => x(data.dates[i])).y(v => y(v))
       .defined((v, i) => todayIdx >= 1 && (i === todayIdx - 1 || i === todayIdx))
       .curve(d3.curveMonotoneX);
 
@@ -1015,46 +919,39 @@
     g.append('g')
       .call(d3.axisLeft(y).ticks(3).tickSize(-w).tickFormat(''))
       .call(a => a.select('.domain').remove())
-      .call(a => a.selectAll('line').attr('stroke', '#f0f0f0'));
+      .call(a => a.selectAll('line').attr('stroke', '#f3f4f6'));
 
-    // Vertical "today" band
     if (todayIdx >= 0) {
       const tx = x(todayStr);
-      g.append('rect')
-        .attr('x', tx - 8).attr('y', 0).attr('width', 16).attr('height', h)
-        .attr('fill', '#f3f4f6').attr('rx', 2);
-      g.append('text')
-        .attr('x', tx).attr('y', -2).attr('text-anchor', 'middle')
-        .style('font-size', '8px').style('fill', '#9ca3af')
-        .text('i dag →');
+      g.append('rect').attr('x', tx - 8).attr('y', 0).attr('width', 16).attr('height', h)
+        .attr('fill', '#f9fafb').attr('rx', 2);
+      g.append('text').attr('x', tx).attr('y', -2).attr('text-anchor', 'middle')
+        .style('font-size', '8px').style('fill', '#9ca3af').text('i dag →');
     }
 
     data.series.forEach((s, i) => {
       const color = LINE_COLORS[i % LINE_COLORS.length];
-      // Solid line up to (not including) today
       g.append('path').datum(s.values)
         .attr('fill', 'none').attr('stroke', color).attr('stroke-width', 2)
         .attr('d', lineUpToToday);
-      // Dashed segment from yesterday → today (partial day)
       if (todayIdx >= 1) {
         g.append('path').datum(s.values)
           .attr('fill', 'none').attr('stroke', color).attr('stroke-width', 1.5)
-          .attr('stroke-dasharray', '4 3').attr('opacity', 0.7)
+          .attr('stroke-dasharray', '4 3').attr('opacity', 0.6)
           .attr('d', lineTodaySegment);
       }
       g.selectAll(null).data(s.values).join('circle')
         .attr('cx', (v, j) => x(data.dates[j])).attr('cy', v => y(v))
-        .attr('r', (v, j) => j === todayIdx ? 4 : 3)
+        .attr('r', (v, j) => j === todayIdx ? 4 : 2.5)
         .attr('fill', (v, j) => j === todayIdx ? 'white' : color)
-        .attr('stroke', color)
-        .attr('stroke-width', (v, j) => j === todayIdx ? 2 : 0)
+        .attr('stroke', color).attr('stroke-width', (v, j) => j === todayIdx ? 2 : 0)
         .on('mousemove', (event, v) => {
           const j = s.values.indexOf(v);
           const partial = j === todayIdx ? ' (dag pågår)' : '';
-          tooltip.textContent = `${s.entity}  ·  ${data.dates[j]}  ·  ${v} art.${partial}`;
+          tooltip.textContent = `${s.entity} · ${data.dates[j]} · ${v} art.${partial}`;
           tooltip.style.opacity = 1;
-          tooltip.style.left = (event.clientX + 12) + 'px';
-          tooltip.style.top  = (event.clientY - 28) + 'px';
+          tooltip.style.left = (event.clientX + 14) + 'px';
+          tooltip.style.top  = (event.clientY - 32) + 'px';
         })
         .on('mouseleave', () => { tooltip.style.opacity = 0; });
     });
@@ -1066,23 +963,23 @@
         .tickFormat(d => new Date(d + 'T12:00').toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' }))
         .tickSize(0))
       .call(a => a.select('.domain').remove())
-      .selectAll('text').attr('dy', '1em').style('font-size', '10px').style('fill', '#737373');
+      .selectAll('text').attr('dy', '1em').style('font-size', '10px').style('fill', '#9ca3af');
 
     g.append('g').call(d3.axisLeft(y).ticks(3))
       .call(a => a.select('.domain').remove())
       .call(a => a.selectAll('line').remove())
-      .selectAll('text').style('font-size', '10px').style('fill', '#737373');
+      .selectAll('text').style('font-size', '10px').style('fill', '#9ca3af');
 
     const legend = svg.append('g').attr('transform', `translate(${m.left + w + 10},${m.top})`);
     data.series.forEach((s, i) => {
       const color = LINE_COLORS[i % LINE_COLORS.length];
-      const row = legend.append('g').attr('transform', `translate(0,${i * 14})`);
-      row.append('line').attr('x1', 0).attr('x2', 12).attr('y1', 5).attr('y2', 5)
+      const row = legend.append('g').attr('transform', `translate(0,${i * 13})`);
+      row.append('line').attr('x1', 0).attr('x2', 10).attr('y1', 5).attr('y2', 5)
         .attr('stroke', color).attr('stroke-width', 2);
-      row.append('circle').attr('cx', 6).attr('cy', 5).attr('r', 2.5).attr('fill', color);
-      const lbl = s.entity.length > 15 ? s.entity.slice(0, 14) + '…' : s.entity;
-      row.append('text').attr('x', 16).attr('y', 9).text(lbl)
-        .style('font-size', '9.5px').style('fill', '#374151');
+      row.append('circle').attr('cx', 5).attr('cy', 5).attr('r', 2).attr('fill', color);
+      const lbl = s.entity.length > 14 ? s.entity.slice(0, 13) + '…' : s.entity;
+      row.append('text').attr('x', 15).attr('y', 9).text(lbl)
+        .style('font-size', '9.5px').style('fill', '#6b7280');
     });
 
     container.appendChild(svg.node());
@@ -1092,58 +989,60 @@
 
   async function loadArticles() {
     renderSkeletons();
-
     const params = new URLSearchParams({
-      page: currentPage,
-      limit: 20,
-      source: activeSource,
-      topic: activeTopic,
-      author: activeAuthor,
-      q: searchEl.value.trim(),
-      date_from: dateFromEl.value,
-      date_to: dateToEl.value,
+      page: currentPage, limit: 21,
+      source: [...activeSource].join(','),
+      topic:  [...activeTopic].join(','),
+      author: [...activeAuthor].join(','),
+      q: [...activeEntity].join(',') || searchEl.value.trim(),
+      date_from: dateFromEl.value, date_to: dateToEl.value,
     });
+    let data;
+    try {
+      const resp = await fetch(`/api/articles?${params}`);
+      if (!resp.ok) throw new Error(`Server feil ${resp.status}`);
+      data = await resp.json();
+    } catch (err) {
+      grid.innerHTML = `<p class="empty">Kunne ikke laste artikler — ${err.message}</p>`;
+      pagination.innerHTML = '';
+      return;
+    }
 
-    const data = await fetch(`/api/articles?${params}`).then(r => r.json());
-
-    statsEl.textContent = `${data.total.toLocaleString('nb-NO')} artikler`;
-    updatedEl.textContent = `Side ${data.page} av ${data.pages}`;
+    countEl.textContent = `${data.total.toLocaleString('nb-NO')} artikler`;
 
     if (data.articles.length === 0) {
       grid.innerHTML = '<p class="empty">Ingen artikler funnet.</p>';
       pagination.innerHTML = '';
-      loadSentimentChart(); loadEntityTimeline();
       return;
     }
 
-    const sentimentLabel = { positive: 'Positiv', negative: 'Negativ', neutral: 'Nøytral' };
-
-    grid.innerHTML = data.articles.map(a => `
+    grid.innerHTML = data.articles.map(a => {
+      const topicLabel = a.topic ? (TOPIC_LABELS[a.topic] || a.topic) : '';
+      const sentClass  = a.sentiment || 'neutral';
+      return `
       <a class="card" href="${a.url}" target="_blank" rel="noopener">
+        ${a.image_url ? `<img class="card-img" src="${a.image_url}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}
         <div class="card-source">
+          <span class="sentiment-dot ${sentClass}"></span>
           ${a.source || 'Ukjent kilde'}
-          ${a.sentiment ? `<span class="badge sentiment-${a.sentiment}">${sentimentLabel[a.sentiment] || a.sentiment}</span>` : ''}
+          ${topicLabel ? `<span class="topic-chip">${topicLabel}</span>` : ''}
         </div>
         <div class="card-title">${a.title || 'Uten tittel'}</div>
         ${a.snippet ? `<div class="card-snippet">${a.snippet}…</div>` : ''}
-        ${tagHtml(a.entities) ? `<div class="tags">${tagHtml(a.entities)}</div>` : ''}
-        <div class="card-meta">
-          <span>${a.author || ''}</span>
-          <span>${fmt(a.published_at)}</span>
+        <div class="card-footer">
+          <span class="card-author">${a.author || ''}</span>
+          <span class="card-date">${fmt(a.published_at)}</span>
         </div>
-      </a>`).join('');
+      </a>`;
+    }).join('');
 
     renderPagination(data.page, data.pages);
-    loadSentimentChart();
-    loadEntityTimeline();
   }
 
   function renderPagination(page, pages) {
     if (pages <= 1) { pagination.innerHTML = ''; return; }
-
     const range = [];
     for (let i = Math.max(1, page - 2); i <= Math.min(pages, page + 2); i++) range.push(i);
-
     pagination.innerHTML = `
       <button class="page-btn" ${page === 1 ? 'disabled' : ''} onclick="go(${page - 1})">←</button>
       ${range[0] > 1 ? `<button class="page-btn" onclick="go(1)">1</button>${range[0] > 2 ? '<span>…</span>' : ''}` : ''}
@@ -1158,14 +1057,13 @@
 
   searchEl.addEventListener('input', () => {
     clearTimeout(searchTimer);
-    activeAuthor = '';
-    searchTimer = setTimeout(() => { currentPage = 1; loadArticles(); }, 400);
+    activeAuthor.clear();
+    activeEntity.clear();
+    searchTimer = setTimeout(() => { currentPage = 1; updateActiveFilterPill(); loadArticles(); }, 400);
   });
+  dateFromEl.addEventListener('change', () => { currentPage = 1; loadArticles(); loadSentimentChart(); });
+  dateToEl.addEventListener('change',   () => { currentPage = 1; loadArticles(); loadSentimentChart(); });
 
-  dateFromEl.addEventListener('change', () => { currentPage = 1; loadArticles(); });
-  dateToEl.addEventListener('change',   () => { currentPage = 1; loadArticles(); });
-
-  // Redraw analytics charts on resize
   let sentResizeTimer;
   new ResizeObserver(() => {
     clearTimeout(sentResizeTimer);
@@ -1173,8 +1071,10 @@
   }).observe(document.querySelector('.analytics-inner'));
 
   // ── init ──────────────────────────────────────────────────────────────────
-  loadArticles();   // also triggers loadSentimentChart at end
+  loadArticles();
   loadEntities();
+  loadSentimentChart();
+  loadEntityTimeline();
 </script>
 </body>
 </html>

@@ -304,6 +304,7 @@ def process_articles(raw_articles: list[dict]) -> list[dict]:
             "sentiment": top.get("label") or "neutral",
             "sentiment_score": round(top.get("score", 0.5), 3),
             "topic": classify_topic(a.get("title", ""), a["text"], emb_list),
+            "image": a.get("image"),
         })
 
     return results

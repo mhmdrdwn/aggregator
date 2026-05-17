@@ -29,13 +29,14 @@ def save_article(article: dict) -> None:
                 """
                 INSERT INTO articles
                     (url, title, body, author, published_at, source, embedding, entities, link_url,
-                     sentiment, sentiment_score, topic)
-                VALUES (%s, %s, %s, %s, %s, %s, %s::vector, %s, %s, %s, %s, %s)
+                     sentiment, sentiment_score, topic, image_url)
+                VALUES (%s, %s, %s, %s, %s, %s, %s::vector, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (url) DO UPDATE SET
                     sentiment       = COALESCE(articles.sentiment,       EXCLUDED.sentiment),
                     sentiment_score = COALESCE(articles.sentiment_score, EXCLUDED.sentiment_score),
                     topic           = COALESCE(articles.topic,           EXCLUDED.topic),
-                    entities        = COALESCE(articles.entities,        EXCLUDED.entities)
+                    entities        = COALESCE(articles.entities,        EXCLUDED.entities),
+                    image_url       = COALESCE(articles.image_url,       EXCLUDED.image_url)
                 """,
                 (
                     article["url"],
@@ -50,6 +51,7 @@ def save_article(article: dict) -> None:
                     article.get("sentiment"),
                     article.get("sentiment_score"),
                     article.get("topic"),
+                    article.get("image"),
                 ),
             )
 
@@ -86,6 +88,33 @@ def article_needs_enrichment(url: str) -> bool:
                 (url,),
             )
             return cur.fetchone() is not None
+
+
+def get_articles_without_images(batch_size: int = 200) -> list[str]:
+    """Return URLs of articles that have not yet had their image extracted."""
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT url FROM articles
+                WHERE image_url IS NULL
+                  AND url IS NOT NULL
+                ORDER BY published_at DESC NULLS LAST
+                LIMIT %s
+                """,
+                (batch_size,),
+            )
+            return [row[0] for row in cur.fetchall()]
+
+
+def set_image_url(url: str, image_url: str) -> None:
+    """Set image_url for an article. Pass '' to mark as checked with no image found."""
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE articles SET image_url = %s WHERE url = %s",
+                (image_url, url),
+            )
 
 
 def get_unenriched_articles(batch_size: int = 100) -> list[dict]:

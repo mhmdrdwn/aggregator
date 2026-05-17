@@ -33,29 +33,48 @@ def list_articles(
 ):
     offset = (page - 1) * limit
 
-    where_clauses = []
-    params: list = []
+    # Content filters (source, topic, author, search) are OR-combined —
+    # selecting NRK + Sport returns NRK articles OR sport articles.
+    # Date filters are AND-combined and applied on top as hard boundaries.
+    content_clauses: list = []
+    content_params: list = []
+    date_clauses:   list = []
+    date_params:    list = []
 
     if source:
-        where_clauses.append("source = %s")
-        params.append(source)
+        sources = [s.strip() for s in source.split(",") if s.strip()]
+        ph = ",".join(["%s"] * len(sources))
+        content_clauses.append(f"source IN ({ph})")
+        content_params.extend(sources)
     if q:
-        where_clauses.append("(title ILIKE %s OR body ILIKE %s)")
-        params.extend([f"%{q}%", f"%{q}%"])
-    if date_from:
-        where_clauses.append("published_at >= %s")
-        params.append(date_from)
-    if date_to:
-        where_clauses.append("published_at < (%s::date + interval '1 day')")
-        params.append(date_to)
+        terms = [t.strip() for t in q.split(",") if t.strip()]
+        term_clauses = ["(title ILIKE %s OR body ILIKE %s)" for _ in terms]
+        content_clauses.append(f"({' OR '.join(term_clauses)})")
+        for t in terms:
+            content_params.extend([f"%{t}%", f"%{t}%"])
     if topic:
-        where_clauses.append("topic = %s")
-        params.append(topic)
+        topics = [t.strip() for t in topic.split(",") if t.strip()]
+        ph = ",".join(["%s"] * len(topics))
+        content_clauses.append(f"topic IN ({ph})")
+        content_params.extend(topics)
     if author:
-        where_clauses.append("author = %s")
-        params.append(author)
+        authors = [a.strip() for a in author.split(",") if a.strip()]
+        ph = ",".join(["%s"] * len(authors))
+        content_clauses.append(f"author IN ({ph})")
+        content_params.extend(authors)
+    if date_from:
+        date_clauses.append("published_at >= %s")
+        date_params.append(date_from)
+    if date_to:
+        date_clauses.append("published_at < (%s::date + interval '1 day')")
+        date_params.append(date_to)
 
-    where_sql = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
+    all_clauses = []
+    if content_clauses:
+        all_clauses.append(f"({' OR '.join(content_clauses)})")
+    all_clauses.extend(date_clauses)
+    params = content_params + date_params
+    where_sql = ("WHERE " + " AND ".join(all_clauses)) if all_clauses else ""
 
     conn = psycopg2.connect(DATABASE_URL)
     try:
@@ -70,7 +89,7 @@ def list_articles(
 
             cur.execute(
                 f"""
-                SELECT id, url, title, body, author, published_at, source, entities, sentiment, sentiment_score, topic
+                SELECT id, url, title, body, author, published_at, source, entities, sentiment, sentiment_score, topic, image_url
                 FROM articles
                 {where_sql}
                 ORDER BY published_at DESC NULLS LAST, created_at DESC
@@ -84,7 +103,7 @@ def list_articles(
 
     articles = []
     for row in rows:
-        id_, url, title, body, author, published_at, source_, entities, sentiment, sentiment_score, topic = row
+        id_, url, title, body, author, published_at, source_, entities, sentiment, sentiment_score, topic, image_url = row
         articles.append(
             {
                 "id": id_,
@@ -98,6 +117,7 @@ def list_articles(
                 "sentiment": sentiment,
                 "sentiment_score": sentiment_score,
                 "topic": topic,
+                "image_url": image_url,
             }
         )
 
@@ -176,11 +196,16 @@ def sentiment_timeline(
     params: list = []
 
     if source:
-        where_clauses.append("source = %s")
-        params.append(source)
+        sources = [s.strip() for s in source.split(",") if s.strip()]
+        ph = ",".join(["%s"] * len(sources))
+        where_clauses.append(f"source IN ({ph})")
+        params.extend(sources)
     if q:
-        where_clauses.append("(title ILIKE %s OR body ILIKE %s)")
-        params.extend([f"%{q}%", f"%{q}%"])
+        terms = [t.strip() for t in q.split(",") if t.strip()]
+        term_clauses = ["(title ILIKE %s OR body ILIKE %s)" for _ in terms]
+        where_clauses.append(f"({' OR '.join(term_clauses)})")
+        for t in terms:
+            params.extend([f"%{t}%", f"%{t}%"])
     if date_from:
         where_clauses.append("published_at >= %s")
         params.append(date_from)
@@ -190,8 +215,10 @@ def sentiment_timeline(
         where_clauses.append("published_at < (%s::date + interval '1 day')")
         params.append(date_to)
     if topic:
-        where_clauses.append("topic = %s")
-        params.append(topic)
+        topics = [t.strip() for t in topic.split(",") if t.strip()]
+        ph = ",".join(["%s"] * len(topics))
+        where_clauses.append(f"topic IN ({ph})")
+        params.extend(topics)
 
     where_sql = "WHERE " + " AND ".join(where_clauses)
 
@@ -239,11 +266,15 @@ def entity_timeline(
     art_params: list = []
 
     if source:
-        art_where.append("a.source = %s")
-        art_params.append(source)
+        sources = [s.strip() for s in source.split(",") if s.strip()]
+        ph = ",".join(["%s"] * len(sources))
+        art_where.append(f"a.source IN ({ph})")
+        art_params.extend(sources)
     if topic:
-        art_where.append("a.topic = %s")
-        art_params.append(topic)
+        topics = [t.strip() for t in topic.split(",") if t.strip()]
+        ph = ",".join(["%s"] * len(topics))
+        art_where.append(f"a.topic IN ({ph})")
+        art_params.extend(topics)
 
     label_sql = " OR ".join(["ent->>'label' = %s"] * len(labels))
     where_sql  = "WHERE " + " AND ".join(art_where) + f" AND ({label_sql})"

@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS articles (
     sentiment       TEXT,
     sentiment_score NUMERIC(5, 3),
     topic           TEXT,
+    image_url       TEXT,
     created_at      TIMESTAMP DEFAULT NOW()
 );
 

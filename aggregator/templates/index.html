@@ -382,6 +382,51 @@
     }
     @keyframes shimmer { to { background-position: -400% 0; } }
 
+    .date-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    /* ── Mobile ──────────────────────────────────────────────────────────── */
+
+    @media (max-width: 640px) {
+      .header-inner { padding: 0.75rem 1rem; }
+
+      .search-inner {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0.6rem 1rem;
+        gap: 0.5rem;
+      }
+      .search-input { min-width: 0; }
+      .date-row { flex-wrap: wrap; }
+      .date-input { flex: 1; min-width: 110px; }
+
+      .explore-inner { padding: 0 1rem 1rem; }
+
+      .analytics-inner {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+        padding: 0.75rem 1rem 1rem;
+      }
+
+      .grid {
+        padding: 1rem;
+        gap: 0.75rem;
+      }
+
+      .card { padding: 1rem 1.1rem 0.85rem; }
+      .card-img {
+        width: calc(100% + 2.2rem);
+        margin: -1rem -1.1rem 0.5rem;
+      }
+
+      .pagination { padding: 1rem 1rem 2.5rem; }
+      .page-btn { min-width: 32px; height: 32px; font-size: 0.8rem; }
+    }
+
   </style>
 </head>
 <body>
@@ -399,10 +444,12 @@
 <div class="search-bar">
   <div class="search-inner">
     <input class="search-input" id="search" type="search" placeholder="Søk i nyheter…" />
-    <span class="date-label">Fra</span>
-    <input class="date-input" id="date-from" type="date" />
-    <span class="date-label">Til</span>
-    <input class="date-input" id="date-to" type="date" />
+    <div class="date-row">
+      <span class="date-label">Fra</span>
+      <input class="date-input" id="date-from" type="date" />
+      <span class="date-label">Til</span>
+      <input class="date-input" id="date-to" type="date" />
+    </div>
     <span id="active-filter-wrap"></span>
   </div>
 </div>
@@ -627,8 +674,10 @@
 
   // ── chart loaders ─────────────────────────────────────────────────────────
 
+  function isMobile() { return window.innerWidth < 640; }
+
   async function loadEntities() {
-    const params = new URLSearchParams({ limit: 36, source: [...activeSource].join(',') });
+    const params = new URLSearchParams({ limit: isMobile() ? 15 : 36, source: [...activeSource].join(',') });
     if (activeLabel) params.set('label', activeLabel);
     const data = await fetch(`/api/entities?${params}`).then(r => r.json());
     drawTreemap(data, 'bubble-chart', 280,
@@ -666,7 +715,7 @@
 
   async function loadSourcesChart() {
     const data = await fetch('/api/sources').then(r => r.json());
-    const items = data.slice(0, 18).map(({ source, count }) => ({ text: source, count }));
+    const items = data.slice(0, isMobile() ? 10 : 18).map(({ source, count }) => ({ text: source, count }));
     drawTreemap(items, 'sources-chart', 240,
       d => activeSource.has(d.text) ? ITEM_ACTIVE : ITEM_COLOR,
       d => {
@@ -724,7 +773,8 @@
     const items = PLACES
       .map(({ city, source }) => ({ text: city, source, count: counts[source] || 0 }))
       .filter(d => d.count > 0)
-      .sort((a, b) => b.count - a.count);
+      .sort((a, b) => b.count - a.count)
+      .slice(0, isMobile() ? 12 : undefined);
     drawTreemap(items, 'places-chart', 240,
       d => activeSource.has(d.source) ? ITEM_ACTIVE : ITEM_COLOR,
       d => {
@@ -735,7 +785,7 @@
   }
 
   async function loadAuthorsChart() {
-    const params = new URLSearchParams({ source: [...activeSource].join(','), topic: [...activeTopic].join(','), days: 7, limit: 50 });
+    const params = new URLSearchParams({ source: [...activeSource].join(','), topic: [...activeTopic].join(','), days: 7, limit: isMobile() ? 20 : 50 });
     const data = await fetch(`/api/authors?${params}`).then(r => r.json());
     const items = data.map(({ author, count, sources }) => ({ text: author, count, sources }));
 
@@ -776,10 +826,16 @@
   }
 
   let resizeTimer;
-  new ResizeObserver(() => {
+  function onResize() {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(reloadActiveChart, 150);
-  }).observe(document.querySelector('.explore-inner'));
+    resizeTimer = setTimeout(() => {
+      reloadActiveChart();
+      loadSentimentChart();
+      loadEntityTimeline();
+    }, 200);
+  }
+  window.addEventListener('resize', onResize);
+  new ResizeObserver(onResize).observe(document.querySelector('.explore-inner'));
 
   document.getElementById('main-tabs').addEventListener('click', e => {
     const tab = e.target.closest('.tab-btn');
@@ -889,9 +945,9 @@
       return;
     }
 
-    const legendW = 120;
-    const m = { top: 6, right: 6, bottom: 22, left: 28 };
     const W = container.clientWidth || 600;
+    const legendW = W >= 480 ? 120 : 0;
+    const m = { top: 6, right: 6, bottom: 22, left: 28 };
     const H = 90;
     const w = W - m.left - m.right - legendW;
     const h = H - m.top - m.bottom;
@@ -970,17 +1026,19 @@
       .call(a => a.selectAll('line').remove())
       .selectAll('text').style('font-size', '10px').style('fill', '#9ca3af');
 
-    const legend = svg.append('g').attr('transform', `translate(${m.left + w + 10},${m.top})`);
-    data.series.forEach((s, i) => {
-      const color = LINE_COLORS[i % LINE_COLORS.length];
-      const row = legend.append('g').attr('transform', `translate(0,${i * 13})`);
-      row.append('line').attr('x1', 0).attr('x2', 10).attr('y1', 5).attr('y2', 5)
-        .attr('stroke', color).attr('stroke-width', 2);
-      row.append('circle').attr('cx', 5).attr('cy', 5).attr('r', 2).attr('fill', color);
-      const lbl = s.entity.length > 14 ? s.entity.slice(0, 13) + '…' : s.entity;
-      row.append('text').attr('x', 15).attr('y', 9).text(lbl)
-        .style('font-size', '9.5px').style('fill', '#6b7280');
-    });
+    if (legendW > 0) {
+      const legend = svg.append('g').attr('transform', `translate(${m.left + w + 10},${m.top})`);
+      data.series.forEach((s, i) => {
+        const color = LINE_COLORS[i % LINE_COLORS.length];
+        const row = legend.append('g').attr('transform', `translate(0,${i * 13})`);
+        row.append('line').attr('x1', 0).attr('x2', 10).attr('y1', 5).attr('y2', 5)
+          .attr('stroke', color).attr('stroke-width', 2);
+        row.append('circle').attr('cx', 5).attr('cy', 5).attr('r', 2).attr('fill', color);
+        const lbl = s.entity.length > 14 ? s.entity.slice(0, 13) + '…' : s.entity;
+        row.append('text').attr('x', 15).attr('y', 9).text(lbl)
+          .style('font-size', '9.5px').style('fill', '#6b7280');
+      });
+    }
 
     container.appendChild(svg.node());
   }
@@ -1064,11 +1122,6 @@
   dateFromEl.addEventListener('change', () => { currentPage = 1; loadArticles(); loadSentimentChart(); });
   dateToEl.addEventListener('change',   () => { currentPage = 1; loadArticles(); loadSentimentChart(); });
 
-  let sentResizeTimer;
-  new ResizeObserver(() => {
-    clearTimeout(sentResizeTimer);
-    sentResizeTimer = setTimeout(() => { loadSentimentChart(); loadEntityTimeline(); }, 150);
-  }).observe(document.querySelector('.analytics-inner'));
 
   // ── init ──────────────────────────────────────────────────────────────────
   loadArticles();

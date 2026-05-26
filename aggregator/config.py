@@ -52,6 +52,32 @@ NORWEGIAN_RSS_FEEDS = [
     # --- Publishers previously only reached via Google News ---
     "https://morgenbladet.no/rss",          # Morgenbladet (weekly quality newspaper)
     "https://hallingdolen.no/rss",          # Hallingdølen (Hallingdal regional)
+
+    # --- NRK thematic channels ---
+    "https://www.nrk.no/sport/toppsaker.rss",   # NRK Sport
+    "https://www.nrk.no/urix/toppsaker.rss",    # NRK Urix (foreign affairs)
+    "https://www.nrk.no/kultur/toppsaker.rss",  # NRK Kultur
+
+    # --- NRK regional ---
+    "https://www.nrk.no/rogaland/toppsaker.rss",
+    "https://www.nrk.no/vestland/toppsaker.rss",
+    "https://www.nrk.no/trondelag/toppsaker.rss",
+    "https://www.nrk.no/innlandet/toppsaker.rss",
+    "https://www.nrk.no/nordland/toppsaker.rss",
+    "https://www.nrk.no/mr/toppsaker.rss",          # Møre og Romsdal
+    "https://www.nrk.no/osloogviken/toppsaker.rss",
+    "https://www.nrk.no/agder/toppsaker.rss",
+    "https://www.nrk.no/tromsogfinnmark/toppsaker.rss",
+
+    # --- Trade / niche ---
+    "https://www.kampanje.com/rss/",        # Kampanje (marketing & media industry)
+    "https://rett24.no/rss/",               # Rett24 (legal news)
+    "https://www.energiogklima.no/feed/",   # Energi og Klima (climate/energy policy)
+
+    # --- Polaris Media regionals with RSS ---
+    "https://www.vol.no/rss",              # Vesterålen Online (Polaris regional)
+    "https://www.driva.no/rss.xml",        # Driva (Sunndalsøra)
+    "https://www.fosna-folket.no/rss",     # Fosna-Folket / Bladet Fosen (Fosen peninsula)
 ]
 
 # Domains with no RSS and no sitemap — paywall/subscriber-only
@@ -68,6 +94,8 @@ NORWEGIAN_NEWS_SITEMAPS = [
     ("https://www.shifter.no/sitemap.xml",            "Shifter"),
     # Paginated sitemap — first page always has the newest articles
     ("https://www.abcnyheter.no/sitemap?start=0&pageType=article", "ABC Nyheter"),
+    ("https://www.khrono.no/sitemap.xml",             "Khrono"),
+    ("https://www.forskning.no/sitemap.xml",          "Forskning.no"),
 ]
 
 # Amedia papers that have no RSS/sitemap — crawl their homepage for article links.
@@ -106,6 +134,51 @@ AMEDIA_PAPERS = [
     ("https://www.ostlendingen.no",       "Østlendingen"),    # Elverum/Hedmark
     ("https://www.nidaros.no",            "Nidaros"),         # Trondheim online
     ("https://www.steinkjer-avisa.no",    "Steinkjer-Avisa"), # Nord-Trøndelag
+
+    # --- Amedia Østfold ---
+    ("https://www.sa.no",                 "Sarpsborg Arbeiderblad"),
+    ("https://www.smaalenene.no",         "Smaalenenes Avis"),# Askim/Mysen
+
+    # --- Amedia Vestfold ---
+    ("https://www.sb.no",                 "Sandefjords Blad"),
+
+    # --- Amedia Telemark / Numedal ---
+    ("https://www.laagendalsposten.no",   "Laagendalsposten"),# Kongsberg
+    ("https://www.telen.no",              "Telen"),           # Notodden
+    ("https://www.pd.no",                 "Porsgrunns Dagblad"),
+    ("https://www.vtb.no",                "Vest-Telemark Blad"),
+
+    # --- Amedia Agder ---
+    ("https://www.firda.no",              "Firda"),           # Nordfjordeid
+    ("https://www.sognavis.no",           "Sogn Avis"),       # Sogndal
+
+    # --- Amedia Nordland ---
+    ("https://www.helgelendingen.no",     "Helgelendingen"),  # Sandnessjøen
+
+    # --- Amedia Troms og Finnmark ---
+    ("https://www.finnmarken.no",         "Finnmarken"),      # Vadsø
+
+    # --- Amedia Akershus ---
+    ("https://www.rha.no",                "Akershus Amtstidende"),
+
+    # --- Amedia Vestfold ---
+    ("https://www.op.no",                 "Østlandsposten"),      # Larvik
+    ("https://www.gjengangeren.no",       "Gjengangeren"),        # Horten
+    ("https://www.oyene.no",              "Øyene"),               # Nøtterøy/Tjøme
+
+    # --- Amedia Rogaland (small) ---
+    ("https://www.ryfylke.no",            "Ryfylke"),             # Sauda/Suldal
+
+    # --- Amedia Vestland (small) ---
+    ("https://www.hardanger-folkeblad.no","Hardanger Folkeblad"), # Odda
+
+    # --- Amedia Møre og Romsdal (via RSS-less Amedia CMS) ---
+    ("https://www.ba.no",                 "Bergensavisen"),        # Bergen (Amedia)
+    ("https://www.tk.no",                 "Tidens Krav"),          # Kristiansund (Amedia)
+    ("https://www.bygdebladet.no",        "Bygdebladet"),          # Averøy
+
+    # --- Amedia Trøndelag (small) ---
+    ("https://www.inderoyningen.no",      "Inderøyningen"),       # Inderøy
 ]
 
 # Canonical publisher names for each domain we ingest directly
@@ -143,6 +216,10 @@ DOMAIN_TO_NAME = {
     "framtidinord.no":     "Framtid i Nord",
     "morgenbladet.no":     "Morgenbladet",
     "hallingdolen.no":     "Hallingdølen",
+    "hegnar.no":           "Hegnar Online",
+    "khrono.no":           "Khrono",
+    "forskning.no":        "Forskning.no",
+    "finansavisen.no":     "Finansavisen",
     "vl.no":               "Vårt Land",
     "dagen.no":            "Dagen",
     "shifter.no":          "Shifter",
@@ -175,6 +252,37 @@ DOMAIN_TO_NAME = {
     "ostlendingen.no":     "Østlendingen",
     "nidaros.no":          "Nidaros",
     "steinkjer-avisa.no":  "Steinkjer-Avisa",
+    # Polaris regionals (RSS)
+    "ba.no":               "Bergensavisen",
+    "tk.no":               "Tidens Krav",
+    "driva.no":            "Driva",
+    "vol.no":              "Vesterålen Online",
+    "fosna-folket.no":     "Bladet Fosen",
+    # Amedia Vestland
+    "firda.no":            "Firda",
+    "sognavis.no":         "Sogn Avis",
+    # Amedia Nordland
+    "helgelendingen.no":   "Helgelendingen",
+    # Amedia Troms og Finnmark
+    "finnmarken.no":       "Finnmarken",
+    # Amedia Akershus
+    "rha.no":              "Akershus Amtstidende",
+    # Amedia Vestfold
+    "op.no":               "Østlandsposten",
+    "gjengangeren.no":     "Gjengangeren",
+    "oyene.no":            "Øyene",
+    # Amedia Rogaland (small)
+    "ryfylke.no":          "Ryfylke",
+    # Amedia Vestland (small)
+    "hardanger-folkeblad.no": "Hardanger Folkeblad",
+    # Amedia Møre og Romsdal
+    "bygdebladet.no":      "Bygdebladet",
+    # Amedia Trøndelag (small)
+    "inderoyningen.no":    "Inderøyningen",
+    # Trade / niche
+    "kampanje.com":        "Kampanje",
+    "rett24.no":           "Rett24",
+    "energiogklima.no":    "Energi og Klima",
 }
 
 # Search URL templates for Google News articles.

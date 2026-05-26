@@ -119,7 +119,7 @@ pip install -r requirements.txt
 python -m spacy download nb_core_news_lg
 
 # 3. Configure environment
-cp .env.example .env   # set DATABASE_URL if different from default
+cp .env.example .env   # uses port 5434 (avoids Cursor/VS Code Postgres on 5432)
 
 # 4. Run the pipeline once to test
 python main.py --once

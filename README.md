@@ -157,6 +157,12 @@ python main.py --backfill-entities # re-normalize stored entities with current a
 
 All publisher lists, NLP model names, skip-URL patterns, and deduplication threshold are in `aggregator/config.py`.
 
+## License
+
+Copyright (c) 2026 Mohamed Radwan. All rights reserved.
+
+Free for personal, educational, and evaluation use. Commercial use — including incorporating this software into a paid product or service — requires prior written permission. See [LICENSE](LICENSE) for full terms or contact **mohamed@uppercase.no** for commercial licensing.
+
 ## API endpoints
 
 | Endpoint | Description |

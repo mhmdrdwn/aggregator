@@ -161,7 +161,7 @@ All publisher lists, NLP model names, skip-URL patterns, and deduplication thres
 
 Copyright (c) 2026 Mohamed Radwan. All rights reserved.
 
-Free for personal, educational, and evaluation use. Commercial use — including incorporating this software into a paid product or service — requires prior written permission. See [LICENSE](LICENSE) for full terms or contact **mohamed@uppercase.no** for commercial licensing.
+Free for personal, educational, and evaluation use. Commercial use — including incorporating this software into a paid product or service — requires prior written permission. See [LICENSE](LICENSE) for full terms or contact **mrdwn4@gmail.com** for commercial licensing.
 
 ## API endpoints
 

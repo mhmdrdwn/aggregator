@@ -90,6 +90,33 @@ def article_needs_enrichment(url: str) -> bool:
             return cur.fetchone() is not None
 
 
+def get_articles_with_entities(offset: int = 0, batch_size: int = 500) -> list[tuple[str, list]]:
+    """Return (url, entities) for articles that have a non-empty entities array."""
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT url, entities FROM articles
+                WHERE entities IS NOT NULL
+                  AND jsonb_typeof(entities) = 'array'
+                  AND jsonb_array_length(entities) > 0
+                ORDER BY id
+                LIMIT %s OFFSET %s
+                """,
+                (batch_size, offset),
+            )
+            return [(row[0], row[1]) for row in cur.fetchall()]
+
+
+def update_entities(url: str, entities: list) -> None:
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE articles SET entities = %s WHERE url = %s",
+                (json.dumps(entities), url),
+            )
+
+
 def get_articles_without_images(batch_size: int = 200) -> list[str]:
     """Return URLs of articles that have not yet had their image extracted."""
     with _conn() as conn:
@@ -115,6 +142,28 @@ def set_image_url(url: str, image_url: str) -> None:
                 "UPDATE articles SET image_url = %s WHERE url = %s",
                 (image_url, url),
             )
+
+
+def get_top_entities(min_count: int = 5) -> list[tuple[str, str, int]]:
+    """Return (text, label, count) for entities appearing in at least min_count articles."""
+    with _conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT ent->>'text' AS text,
+                       ent->>'label' AS label,
+                       COUNT(*) AS cnt
+                FROM articles,
+                     jsonb_array_elements(entities) AS ent
+                WHERE entities IS NOT NULL
+                  AND jsonb_typeof(entities) = 'array'
+                GROUP BY ent->>'text', ent->>'label'
+                HAVING COUNT(*) >= %s
+                ORDER BY cnt DESC
+                """,
+                (min_count,),
+            )
+            return [(row[0], row[1], row[2]) for row in cur.fetchall()]
 
 
 def get_unenriched_articles(batch_size: int = 100) -> list[dict]:

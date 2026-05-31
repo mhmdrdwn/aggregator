@@ -3,8 +3,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .discovery import discover_all
 from .extraction import fetch_article, _parse
-from .nlp import deduplicate, process_articles
-from .storage import article_exists, get_articles_without_images, get_unenriched_articles, save_article, set_image_url
+from .nlp import deduplicate, normalize_entities, process_articles, refresh_corpus_aliases
+from .storage import article_exists, get_articles_with_entities, get_articles_without_images, get_top_entities, get_unenriched_articles, save_article, set_image_url, update_entities
 from .config import SKIP_URL_PATTERNS
 
 logger = logging.getLogger(__name__)
@@ -40,6 +40,7 @@ def run_pipeline() -> None:
         except Exception as e:
             logger.error(f"Failed to save {article.get('url')}: {e}")
 
+    refresh_corpus_aliases(get_top_entities())
     logger.info("Pipeline complete")
 
 
@@ -70,6 +71,35 @@ def run_backfill(batch_size: int = 100) -> None:
         logger.info(f"Backfill progress: {total_done} articles enriched so far")
 
     logger.info(f"Backfill complete — {total_done} articles enriched")
+
+
+def run_entity_normalization_backfill(batch_size: int = 500) -> None:
+    """Re-normalize stored entities for all articles using current alias tables.
+
+    Builds corpus aliases first, then applies normalize_entities() to every
+    article's stored entity list and writes the result back — no HTTP fetching,
+    no model inference.
+    """
+    logger.info("Entity normalization backfill started — building corpus aliases")
+    refresh_corpus_aliases(get_top_entities())
+
+    total_updated = 0
+    offset = 0
+    while True:
+        batch = get_articles_with_entities(offset=offset, batch_size=batch_size)
+        if not batch:
+            break
+
+        for url, entities in batch:
+            normalized = normalize_entities(entities)
+            if normalized != entities:
+                update_entities(url, normalized)
+                total_updated += 1
+
+        offset += batch_size
+        logger.info(f"Entity backfill: processed {offset} articles, {total_updated} updated so far")
+
+    logger.info(f"Entity normalization backfill complete — {total_updated} articles updated")
 
 
 def _fetch_image(url: str) -> tuple[str, str]:

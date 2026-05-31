@@ -332,6 +332,21 @@ def entity_timeline(
     }
 
 
+@app.get("/api/entity-aliases")
+def entity_aliases():
+    """Debug endpoint: show all active entity alias mappings (static + dynamic)."""
+    from .nlp import _ENTITY_ALIASES, _dynamic_aliases
+    static = [{"text": k[0], "label": k[1], "canonical": v, "source": "static"}
+              for k, v in _ENTITY_ALIASES.items()]
+    dynamic = [{"text": k[0], "label": k[1], "canonical": v, "source": "dynamic"}
+               for k, v in _dynamic_aliases.items()]
+    return {
+        "static_count": len(static),
+        "dynamic_count": len(dynamic),
+        "aliases": static + dynamic,
+    }
+
+
 @app.get("/api/sources")
 def list_sources():
     conn = psycopg2.connect(DATABASE_URL)

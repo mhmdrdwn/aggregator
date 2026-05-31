@@ -226,31 +226,101 @@ _ENTITY_ALIASES: dict[tuple[str, str], str] = {
 }
 
 
+# Corpus-derived aliases, refreshed at the end of each pipeline run.
+# Format matches _ENTITY_ALIASES: (text_lower, label) → canonical display name.
+_dynamic_aliases: dict[tuple[str, str], str] = {}
+
+
 def _normalize_entity(text: str, label: str) -> str:
     key = (text.lower(), label)
-    canon = _ENTITY_ALIASES.get(key)
+    canon = _ENTITY_ALIASES.get(key) or _dynamic_aliases.get(key)
     if canon:
         return canon
     # Strip Norwegian genitive 's' and retry (e.g. "Kylian Mbappés" → "Kylian Mbappé")
     if text.endswith("s") and len(text) > 3:
         key2 = (text[:-1].lower(), label)
-        canon2 = _ENTITY_ALIASES.get(key2)
+        canon2 = _ENTITY_ALIASES.get(key2) or _dynamic_aliases.get(key2)
         if canon2:
             return canon2
     return text
 
 
 def normalize_entities(entities: list[dict]) -> list[dict]:
-    """Normalize surface forms and deduplicate within a single article."""
+    """Normalize surface forms, apply per-article co-occurrence merging, and deduplicate."""
+    # Pass 1: static + dynamic alias lookup
+    after_aliases = [
+        {"text": _normalize_entity(e["text"], e["label"]), "label": e["label"]}
+        for e in entities
+    ]
+
+    # Pass 2: per-article co-occurrence — if "Warholm" and "Karsten Warholm" both appear
+    # in the same article, absorb the single-token form into the full name.
+    # Build last-token → full-name map, but only for unambiguous cases.
+    last_to_full: dict[str, str] = {}
+    last_count: dict[str, int] = {}
+    for e in after_aliases:
+        if e["label"] == "PER" and " " in e["text"]:
+            last = e["text"].split()[-1].lower()
+            last_count[last] = last_count.get(last, 0) + 1
+            last_to_full[last] = e["text"]
+    # Drop ambiguous last names (two different full names share the same last token)
+    unambiguous = {k: v for k, v in last_to_full.items() if last_count[k] == 1}
+
     seen: set[tuple[str, str]] = set()
     result: list[dict] = []
-    for ent in entities:
-        normalized = _normalize_entity(ent["text"], ent["label"])
-        key = (normalized, ent["label"])
+    for e in after_aliases:
+        text, label = e["text"], e["label"]
+        if label == "PER" and " " not in text:
+            full = unambiguous.get(text.lower())
+            if full:
+                text = full
+        key = (text, label)
         if key not in seen:
             seen.add(key)
-            result.append({"text": normalized, "label": ent["label"]})
+            result.append({"text": text, "label": label})
     return result
+
+
+def build_corpus_aliases(
+    entity_counts: list[tuple[str, str, int]],
+    min_full_count: int = 20,
+    min_short_count: int = 5,
+) -> dict[tuple[str, str], str]:
+    """
+    Approach 2: suffix matching with frequency bias.
+
+    For each single-token entity whose text matches the last token of exactly one
+    high-frequency multi-token entity, create an automatic alias.
+    Ambiguous cases (two full names share the same last token) are skipped.
+    """
+    # Index multi-token entities by (last_token_lower, label)
+    by_last: dict[tuple[str, str], list[str]] = {}
+    for text, label, count in entity_counts:
+        tokens = text.strip().split()
+        if len(tokens) >= 2 and count >= min_full_count:
+            key = (tokens[-1].lower(), label)
+            by_last.setdefault(key, []).append(text)
+
+    aliases: dict[tuple[str, str], str] = {}
+    for text, label, count in entity_counts:
+        tokens = text.strip().split()
+        if len(tokens) != 1 or count < min_short_count:
+            continue
+        if (text.lower(), label) in _ENTITY_ALIASES:
+            continue  # static dict takes priority, no need to duplicate
+        candidates = by_last.get((text.lower(), label), [])
+        if len(candidates) == 1:
+            canonical = candidates[0]
+            aliases[(text.lower(), label)] = canonical
+            aliases[(text.lower() + "s", label)] = canonical  # genitive form
+    return aliases
+
+
+def refresh_corpus_aliases(entity_counts: list[tuple[str, str, int]]) -> None:
+    """Rebuild the dynamic alias cache from fresh corpus frequency data."""
+    global _dynamic_aliases
+    _dynamic_aliases = build_corpus_aliases(entity_counts)
+    logger.info(f"Corpus aliases refreshed: {len(_dynamic_aliases)} dynamic aliases")
 
 
 def _ner(text: str) -> list[dict]:

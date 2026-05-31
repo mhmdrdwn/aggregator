@@ -7,7 +7,7 @@ logging.basicConfig(
 )
 
 import argparse
-from aggregator.pipeline import run_backfill, run_image_backfill, run_pipeline
+from aggregator.pipeline import run_backfill, run_entity_normalization_backfill, run_image_backfill, run_pipeline
 from aggregator.scheduler import start as start_scheduler
 
 
@@ -34,6 +34,11 @@ def main() -> None:
         action="store_true",
         help="Fetch og:image for existing articles that have no image yet",
     )
+    group.add_argument(
+        "--backfill-entities",
+        action="store_true",
+        help="Re-normalize stored entities using current alias tables (no model inference)",
+    )
     parser.add_argument("--host", default="127.0.0.1", help="Host for --serve (default: 127.0.0.1)")
     parser.add_argument("--port", type=int, default=8000, help="Port for --serve (default: 8000)")
     args = parser.parse_args()
@@ -44,6 +49,8 @@ def main() -> None:
         run_backfill()
     elif args.backfill_images:
         run_image_backfill()
+    elif args.backfill_entities:
+        run_entity_normalization_backfill()
     elif args.serve:
         import uvicorn
         from aggregator.api import app
